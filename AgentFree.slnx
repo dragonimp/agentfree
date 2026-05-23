@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AgentFree.API/AgentFree.API.csproj" />
+    <Project Path="src/AgentFree.Web/AgentFree.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AgentFree.Tests/AgentFree.Tests.csproj" />
+  </Folder>
+</Solution>

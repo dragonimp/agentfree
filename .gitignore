@@ -1,0 +1,33 @@
+# ============ .gitignore for AgentFree ============
+
+# ============ .NET ============
+bin/
+obj/
+publish/
+*.user
+*.suo
+*.cache
+*.log
+
+# ============ Node.js ============
+src/AgentFree.Web/node_modules/
+src/AgentFree.Web/dist/
+
+# ============ IDE ============
+.vs/
+.vscode/
+*.csproj.user
+
+# ============ OS ============
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============ Secrets ============
+appsettings.Development.json
+*.key
+*.pem

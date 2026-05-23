@@ -1,0 +1,6 @@
+@AgentFree.API_HostAddress = http://localhost:5212
+
+GET {{AgentFree.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
