@@ -1,0 +1,17 @@
+[Unit]
+Description=AgentFree API Service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/agentfree/api
+ExecStart=/usr/bin/dotnet /var/www/agentfree/api/AgentFree.API.dll
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=agentfree-api
+
+[Install]
+WantedBy=multi-user.target
