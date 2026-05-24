@@ -51,8 +51,11 @@
 |---|---|
 | 域名 | https://agent.ai.impx.net/ |
 | 服务器 | zz.impx.net (root SSH) |
-| API 端口 | 待分配 |
-| 静态目录 | /var/www/agent-free/ |
+| 项目根目录 | /opt/agentfree/ |
+| ├─ 前端 (web) | /opt/agentfree/web/ |
+| ├─ 后端 (api) | /opt/agentfree/api/ |
+| ├─ 数据 (data) | /opt/agentfree/data/ |
+| 备份目录 | /opt/backups/ |
 
 ## 快速开始
 
