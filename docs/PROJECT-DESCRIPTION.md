@@ -16,6 +16,8 @@
 | **开始日期** | 2026-05-05（原始）/ 2026-05-20（重构） |
 | **本地源码** | `~/Projects/AgentFree/` |
 | **文档路径** | `~/Projects/AgentFree/docs/` |
+|| **Git 仓库** | https://github.com/dragonimp/agentfree |
+|| **Git 分支** | main |
 | **企业微信群聊ID** | （待确认） |
 
 ## 项目描述
