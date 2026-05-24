@@ -38,8 +38,10 @@
 |----|-----|
 || **部署服务器** | zz.impx.net |
 || **项目根目录** | /opt/agentfree/ |
-|| **前端远程路径** | /opt/agentfree/web/（Nginx serve 静态文件） |
-|| **后端远程路径** | /opt/agentfree/api/ |
+|| **web 目录** | /opt/agentfree/web/（Nginx serve 静态文件） |
+|| **api 目录** | /opt/agentfree/api/ |
+|| **data 目录** | /opt/agentfree/data/ |
+|| **备份目录** | /opt/backups/agentfree/ |
 || **API 进程** | `dotnet AgentFree.API.dll` (127.0.0.1:5201) |
 || **API systemd 服务** | ✅ `agentfree-api.service` |
 | **API 端口** | 5201 |
