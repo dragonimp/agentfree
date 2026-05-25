@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-05-26
+
+### 02:30 — 新增聊天会话管理和流式聊天功能
+
+- **新增后端 ChatController**：
+  - `GET /api/chat/models` — 获取智能体可用模型
+  - `POST /api/chat/stream` — AG-UI 流式聊天端点（SSE Server-Sent Events）
+- **新增前端组件**：
+  - `Sessions.tsx` — 会话列表页（创建/删除/跳转聊天）
+  - `Chat.tsx` — 聊天对话页（Markdown 渲染 + 流式响应）
+  - `api/index.ts` 新增 `streamChat()` SSE 流式聊天函数
+- **路由更新**：App.tsx 新增 `/sessions` 和 `/chat/:sessionId` 路由
+- **部署**：
+  - 本地构建前端 dist/ + 后端 publish/
+  - 上传到服务器 zz.impx.net
+  - 部署到 /var/www/agentfree/web/ + /var/www/agentfree/api/
+  - 同步到 /opt/agentfree/ 规范目录
+  - 备份到 /opt/backups/agentfree_backup_20260526_023401.tar.gz
+  - Nginx 代理端口修正为 5000
+  - API 健康检查 ✅ HTTP 200
+  - Sessions API ✅ HTTP 200
+  - Chat Models API ✅ HTTP 200
+  - 前端 ✅ HTTP 200
+
+---
+
 ## 2026-05-24
 
 ### 09:35 — 版本管理 & 部署规范统一
