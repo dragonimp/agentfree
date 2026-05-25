@@ -31,3 +31,7 @@ Thumbs.db
 appsettings.Development.json
 *.key
 *.pem
+
+# Secrets
+.env
+appsettings.json
