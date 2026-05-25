@@ -3,6 +3,9 @@ export interface Agent {
   name: string
   description: string
   agentType: 'Openclaw' | 'Hermes' | 'Goldfish'
+  serviceUrl?: string
+  agentId?: string
+  token?: string
   status: 'Active' | 'Inactive' | 'Error'
   createdAt: string
   updatedAt: string
