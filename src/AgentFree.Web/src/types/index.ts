@@ -25,3 +25,40 @@ export interface Tool {
   category: string
   description: string
 }
+
+export interface Session {
+  id: string
+  agentId: number
+  agentName?: string
+  name: string
+  createdAt: string
+  updatedAt: string
+  messageCount?: number
+}
+
+export interface ChatMessage {
+  id: number
+  sessionId: string
+  role: 'system' | 'user' | 'assistant'
+  content: string
+  toolCallId?: string
+  createdAt: string
+}
+
+export interface ChatModel {
+  id: string
+  name: string
+  provider: string
+}
+
+export interface CreateSessionParams {
+  agentId: number
+  name: string
+}
+
+export interface SendMessageParams {
+  sessionId: string
+  role: string
+  content: string
+  toolCallId?: string
+}
