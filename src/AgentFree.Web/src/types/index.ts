@@ -2,7 +2,7 @@ export interface Agent {
   id: number
   name: string
   description: string
-  protocolType: string
+  agentType: 'Openclaw' | 'Hermes' | 'Goldfish'
   status: 'Active' | 'Inactive' | 'Error'
   createdAt: string
   updatedAt: string

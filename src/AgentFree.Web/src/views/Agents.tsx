@@ -24,7 +24,11 @@ export default function Agents() {
   const [drawerVisible, setDrawerVisible] = useState(false)
   const [detailAgent, setDetailAgent] = useState<Agent | null>(null)
 
-  const protocolOptions = ['MCP', 'A2UI', 'AG-UI', 'Skills', 'A2A']
+  const agentTypeOptions = [
+    { value: 'Goldfish', label: 'Goldfish (自研)' },
+    { value: 'Openclaw', label: 'Openclaw' },
+    { value: 'Hermes', label: 'Hermes' },
+  ]
 
   const fetchAgents = async () => {
     try {
@@ -99,11 +103,14 @@ export default function Agents() {
       ),
     },
     {
-      title: '协议',
-      dataIndex: 'protocolType',
-      key: 'protocolType',
-      width: isMobile ? 'auto' : 120,
-      render: (text) => <Tag color="blue">{text}</Tag>,
+      title: '智能体类型',
+      dataIndex: 'agentType',
+      key: 'agentType',
+      width: isMobile ? 'auto' : 140,
+      render: (text) => {
+        const color = text === 'Goldfish' ? 'green' : text === 'Openclaw' ? 'blue' : 'purple'
+        return <Tag color={color}>{text}</Tag>
+      },
     },
     {
       title: '状态',
@@ -179,7 +186,7 @@ export default function Agents() {
                       </Tag>
                     </div>
                     <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>{agent.description}</div>
-                    <Tag color="blue">{agent.protocolType}</Tag>
+                    <Tag color={agent.agentType === 'Goldfish' ? 'green' : agent.agentType === 'Openclaw' ? 'blue' : 'purple'}>{agent.agentType}</Tag>
                   </div>
                   <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                     <Button type="text" size="small" icon={<EditOutlined />} onClick={(e) => {
@@ -222,8 +229,8 @@ export default function Agents() {
             <Form.Item name="description" label="描述">
               <Input.TextArea rows={3} placeholder="Agent 描述" />
             </Form.Item>
-            <Form.Item name="protocolType" label="协议类型" rules={[{ required: true, message: '请选择协议类型' }]}>
-              <Select placeholder="选择协议类型" options={protocolOptions.map(p => ({ value: p, label: p }))} />
+            <Form.Item name="agentType" label="智能体类型" rules={[{ required: true, message: '请选择智能体类型' }]} initialValue="Goldfish">
+              <Select placeholder="选择智能体类型" options={agentTypeOptions} />
             </Form.Item>
             <Form.Item name="status" label="状态" initialValue="Inactive">
               <Select options={[{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }]} />
@@ -245,7 +252,7 @@ export default function Agents() {
                 <Title level={5}>{detailAgent.name}</Title>
                 <Text type="secondary">{detailAgent.description}</Text>
                 <div style={{ marginTop: 12 }}>
-                  <Tag color="blue">{detailAgent.protocolType}</Tag>
+                  <Tag color={detailAgent.agentType === 'Goldfish' ? 'green' : detailAgent.agentType === 'Openclaw' ? 'blue' : 'purple'}>{detailAgent.agentType}</Tag>
                   <Tag color={detailAgent.status === 'Active' ? 'green' : 'default'}>{detailAgent.status}</Tag>
                 </div>
               </Card>
@@ -295,8 +302,8 @@ export default function Agents() {
           <Form.Item name="description" label="描述">
             <Input.TextArea rows={3} placeholder="Agent 描述" />
           </Form.Item>
-          <Form.Item name="protocolType" label="协议类型" rules={[{ required: true, message: '请选择协议类型' }]}>
-            <Select placeholder="选择协议类型" options={protocolOptions.map(p => ({ value: p, label: p }))} />
+          <Form.Item name="agentType" label="智能体类型" rules={[{ required: true, message: '请选择智能体类型' }]} initialValue="Goldfish">
+            <Select placeholder="选择智能体类型" options={agentTypeOptions} />
           </Form.Item>
           <Form.Item name="status" label="状态" initialValue="Inactive">
             <Select options={[{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }]} />
@@ -318,7 +325,7 @@ export default function Agents() {
               <Title level={5}>{detailAgent.name}</Title>
               <Text type="secondary">{detailAgent.description}</Text>
               <div style={{ marginTop: 12 }}>
-                <Tag color="blue">{detailAgent.protocolType}</Tag>
+                <Tag color={detailAgent.agentType === 'Goldfish' ? 'green' : detailAgent.agentType === 'Openclaw' ? 'blue' : 'purple'}>{detailAgent.agentType}</Tag>
                 <Tag color={detailAgent.status === 'Active' ? 'green' : 'default'}>{detailAgent.status}</Tag>
               </div>
             </Card>
