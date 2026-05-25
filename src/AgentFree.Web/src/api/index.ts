@@ -31,4 +31,45 @@ export const sendMessage = (data: SendMessageParams) => api.post<ChatMessage>(`/
 // ============ Chat API ============
 export const getChatModels = (agentId: number) => api.get<ChatModel[]>(`/agents/${agentId}/models`)
 
+// ============ Stream Chat API (SSE) ============
+export interface StreamChatRequest {
+  sessionId: string
+  message: string
+}
+
+export interface StreamChatDelta {
+  role?: 'user' | 'assistant' | 'system'
+  content?: string
+  finish?: boolean
+}
+
+export function streamChat(request: StreamChatRequest): Promise<{
+  reader: ReadableStreamDefaultReader<Uint8Array>
+  abort: () => void
+}> {
+  const abortController = new AbortController()
+
+  const fetchPromise = fetch('/api/chat/stream', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      sessionId: request.sessionId,
+      message: request.message,
+    }),
+    signal: abortController.signal,
+  })
+
+  return fetchPromise.then(async (response) => {
+    if (!response.ok || !response.body) {
+      throw new Error(`Stream request failed: ${response.statusText}`)
+    }
+    return {
+      reader: response.body.getReader(),
+      abort: () => abortController.abort(),
+    }
+  })
+}
+
 export default api
