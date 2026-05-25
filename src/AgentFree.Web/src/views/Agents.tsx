@@ -113,6 +113,27 @@ export default function Agents() {
       },
     },
     {
+      title: '服务地址',
+      dataIndex: 'serviceUrl',
+      key: 'serviceUrl',
+      width: isMobile ? 'auto' : 200,
+      render: (text) => text || '-',
+    },
+    {
+      title: '智能体ID',
+      dataIndex: 'agentId',
+      key: 'agentId',
+      width: isMobile ? 'auto' : 140,
+      render: (text) => text || '-',
+    },
+    {
+      title: 'TOKEN',
+      dataIndex: 'token',
+      key: 'token',
+      width: isMobile ? 'auto' : 160,
+      render: (text) => text ? `${text.substring(0, 8)}****` : '-',
+    },
+    {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
@@ -232,6 +253,15 @@ export default function Agents() {
             <Form.Item name="agentType" label="智能体类型" rules={[{ required: true, message: '请选择智能体类型' }]} initialValue="Goldfish">
               <Select placeholder="选择智能体类型" options={agentTypeOptions} />
             </Form.Item>
+            <Form.Item name="serviceUrl" label="服务地址">
+              <Input placeholder="Agent 服务地址 (如 http://127.0.0.1:5101)" />
+            </Form.Item>
+            <Form.Item name="agentId" label="智能体ID">
+              <Input placeholder="Agent 唯一标识" />
+            </Form.Item>
+            <Form.Item name="token" label="TOKEN">
+              <Input.Password placeholder="认证 Token" />
+            </Form.Item>
             <Form.Item name="status" label="状态" initialValue="Inactive">
               <Select options={[{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }]} />
             </Form.Item>
@@ -251,8 +281,11 @@ export default function Agents() {
               <Card size="small" style={{ marginBottom: 16 }}>
                 <Title level={5}>{detailAgent.name}</Title>
                 <Text type="secondary">{detailAgent.description}</Text>
-                <div style={{ marginTop: 12 }}>
+                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   <Tag color={detailAgent.agentType === 'Goldfish' ? 'green' : detailAgent.agentType === 'Openclaw' ? 'blue' : 'purple'}>{detailAgent.agentType}</Tag>
+                  <Tag>{detailAgent.serviceUrl || '-'}</Tag>
+                  <Tag>{detailAgent.agentId || '-'}</Tag>
+                  <Tag>{detailAgent.token ? `${detailAgent.token.substring(0, 8)}****` : '-'}</Tag>
                   <Tag color={detailAgent.status === 'Active' ? 'green' : 'default'}>{detailAgent.status}</Tag>
                 </div>
               </Card>
@@ -304,6 +337,15 @@ export default function Agents() {
           </Form.Item>
           <Form.Item name="agentType" label="智能体类型" rules={[{ required: true, message: '请选择智能体类型' }]} initialValue="Goldfish">
             <Select placeholder="选择智能体类型" options={agentTypeOptions} />
+          </Form.Item>
+          <Form.Item name="serviceUrl" label="服务地址">
+            <Input placeholder="Agent 服务地址 (如 http://127.0.0.1:5101)" />
+          </Form.Item>
+          <Form.Item name="agentId" label="智能体ID">
+            <Input placeholder="Agent 唯一标识" />
+          </Form.Item>
+          <Form.Item name="token" label="TOKEN">
+            <Input.Password placeholder="认证 Token" />
           </Form.Item>
           <Form.Item name="status" label="状态" initialValue="Inactive">
             <Select options={[{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }]} />

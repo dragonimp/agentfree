@@ -7,6 +7,9 @@ namespace AgentFree.API.Models
         public string? Description { get; set; }
         public string? SystemPrompt { get; set; }
         public string AgentType { get; set; } = "Goldfish";
+        public string? ServiceUrl { get; set; }
+        public string? AgentId { get; set; }
+        public string? Token { get; set; }
         public string Status { get; set; } = "Inactive";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -18,6 +21,9 @@ namespace AgentFree.API.Models
         public string? Description { get; set; }
         public string? SystemPrompt { get; set; }
         public string AgentType { get; set; } = "Goldfish";
+        public string? ServiceUrl { get; set; }
+        public string? AgentId { get; set; }
+        public string? Token { get; set; }
     }
 
     public class UpdateAgentDto
@@ -26,6 +32,9 @@ namespace AgentFree.API.Models
         public string? Description { get; set; }
         public string? SystemPrompt { get; set; }
         public string? AgentType { get; set; }
+        public string? ServiceUrl { get; set; }
+        public string? AgentId { get; set; }
+        public string? Token { get; set; }
         public string? Status { get; set; }
     }
 }
