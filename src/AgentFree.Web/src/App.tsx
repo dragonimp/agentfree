@@ -6,17 +6,21 @@ import {
   ClusterOutlined,
   TeamOutlined,
   SettingOutlined,
+  MessageOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from '@ant-design/icons'
 import Home from './views/Home'
 import Agents from './views/Agents'
+import Sessions from './views/Sessions'
+import Chat from './views/Chat'
 
 const { Header, Content } = Layout
 const { Title } = Typography
 
 const menuItems = [
   { key: '/', icon: <HomeOutlined />, label: '首页' },
+  { key: '/sessions', icon: <MessageOutlined />, label: '聊天会话' },
   { key: '/agents', icon: <ClusterOutlined />, label: 'Agent 管理' },
 ]
 
@@ -95,6 +99,8 @@ export default function App() {
       <Content style={{ padding: isMobile ? 12 : 24, background: '#f0f2f5', minHeight: 280 }}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/sessions" element={<Sessions />} />
+          <Route path="/chat/:sessionId" element={<Chat />} />
           <Route path="/agents" element={<Agents />} />
         </Routes>
       </Content>
