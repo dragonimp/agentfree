@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import { Layout, Menu, Typography, Button, theme } from 'antd'
+import { Layout, Menu, Typography, theme } from 'antd'
 import {
   HomeOutlined,
   ClusterOutlined,
@@ -10,13 +10,13 @@ import Home from './views/Home'
 import Agents from './views/Agents'
 import ChatLayout from './views/ChatLayout'
 
-const { Header, Content } = Layout
+const { Header, Content, Footer } = Layout
 const { Title } = Typography
 
 const menuItems = [
   { key: '/', icon: <HomeOutlined />, label: '首页' },
   { key: '/chat', icon: <MessageOutlined />, label: '聊天' },
-  { key: '/agents', icon: <ClusterOutlined />, label: 'Agent 管理' },
+  { key: '/agents', icon: <ClusterOutlined />, label: '管理' },
 ]
 
 function useIsMobile() {
@@ -72,11 +72,70 @@ function HeaderContent() {
   )
 }
 
+// 移动端底部导航栏
+function MobileBottomNav() {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const navItems = [
+    { key: '/', icon: <HomeOutlined />, label: '首页' },
+    { key: '/chat', icon: <MessageOutlined />, label: '聊天' },
+    { key: '/agents', icon: <ClusterOutlined />, label: '管理' },
+  ]
+
+  return (
+    <Footer
+      style={{
+        display: 'flex',
+        justifyContent: 'space-around',
+        background: '#fff',
+        borderTop: '1px solid #f0f0f0',
+        padding: '0',
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 999,
+      }}
+    >
+      {navItems.map(item => (
+        <div
+          key={item.key}
+          onClick={() => navigate(item.key)}
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '8px 0',
+            color: location.pathname === item.key ? '#1890ff' : '#999',
+            fontSize: 12,
+            cursor: 'pointer',
+            background: location.pathname === item.key ? '#e6f7ff' : 'transparent',
+            borderRadius: 8,
+          }}
+        >
+          {item.icon}
+          <span style={{ marginTop: 2 }}>{item.label}</span>
+        </div>
+      ))}
+    </Footer>
+  )
+}
+
 export default function App() {
+  const isMobile = useIsMobile()
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <HeaderContent />
-      <Content style={{ padding: 24, background: '#f0f2f5', minHeight: 280 }}>
+      <Content style={{
+        padding: isMobile ? 16 : 24,
+        background: '#f0f2f5',
+        minHeight: 280,
+        paddingBottom: isMobile ? 70 : 24,
+      }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/chat" element={<ChatLayout />} />
@@ -84,6 +143,7 @@ export default function App() {
           <Route path="/agents" element={<Agents />} />
         </Routes>
       </Content>
+      {isMobile && <MobileBottomNav />}
     </Layout>
   )
 }
