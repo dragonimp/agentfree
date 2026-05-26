@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Card, Typography, Button, Table, Tag, Space, Modal, Form, Input, Select, Popconfirm, message, Drawer } from 'antd'
+import { Card, Typography, Button, Tag, Space, Modal, Form, Input, Select, Popconfirm, message, Drawer, Row, Col, Avatar, Tooltip, theme } from 'antd'
 import {
   PlusOutlined,
   EditOutlined,
@@ -7,15 +7,24 @@ import {
   PoweroffOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  RobotOutlined,
+  ThunderboltOutlined,
+  ClockCircleOutlined,
+  GlobalOutlined,
+  KeyOutlined,
 } from '@ant-design/icons'
-import type { ColumnsType } from 'antd/es/table'
 import { getAgents, createAgent, updateAgent, deleteAgent, startAgent, stopAgent } from '@/api'
 import type { Agent } from '@/types'
 
-const { Title, Text } = Typography
+const { Title, Text, Paragraph } = Typography
+
+const agentTypeStyles: Record<string, { bg: string; color: string; tag: string; icon: string }> = {
+  Goldfish: { bg: '#f6ffed', color: '#52c41a', tag: 'green', icon: '🐠' },
+  Openclaw: { bg: '#e6f7ff', color: '#1890ff', tag: 'blue', icon: '🔗' },
+  Hermes:   { bg: '#f9f0ff', color: '#722ed1', tag: 'purple', icon: '🦄' },
+}
 
 export default function Agents() {
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
   const [agents, setAgents] = useState<Agent[]>([])
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
@@ -36,7 +45,6 @@ export default function Agents() {
       const res = await getAgents()
       setAgents(res.data)
     } catch (err: any) {
-      // API not ready yet, use mock data
       console.log('API not ready, using mock data')
     } finally {
       setLoading(false)
@@ -89,273 +97,220 @@ export default function Agents() {
     }
   }
 
-  const columns: ColumnsType<Agent> = [
-    {
-      title: '名称',
-      dataIndex: 'name',
-      key: 'name',
-      width: isMobile ? 'auto' : 200,
-      ellipsis: true,
-      render: (text, record) => (
-        <a onClick={() => { setDetailAgent(record); setDrawerVisible(true) }}>
-          {text}
-        </a>
-      ),
-    },
-    {
-      title: '智能体类型',
-      dataIndex: 'agentType',
-      key: 'agentType',
-      width: isMobile ? 'auto' : 140,
-      render: (text) => {
-        const color = text === 'Goldfish' ? 'green' : text === 'Openclaw' ? 'blue' : 'purple'
-        return <Tag color={color}>{text}</Tag>
-      },
-    },
-    {
-      title: '服务地址',
-      dataIndex: 'serviceUrl',
-      key: 'serviceUrl',
-      width: isMobile ? 'auto' : 200,
-      render: (text) => text || '-',
-    },
-    {
-      title: '智能体ID',
-      dataIndex: 'agentId',
-      key: 'agentId',
-      width: isMobile ? 'auto' : 140,
-      render: (text) => text || '-',
-    },
-    {
-      title: 'TOKEN',
-      dataIndex: 'token',
-      key: 'token',
-      width: isMobile ? 'auto' : 160,
-      render: (text) => text ? `${text.substring(0, 8)}****` : '-',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: isMobile ? 'auto' : 100,
-      render: (status: string) => (
-        <Tag color={status === 'Active' ? 'green' : status === 'Error' ? 'red' : 'default'}>
-          {status === 'Active' ? <CheckCircleOutlined /> : status === 'Error' ? <CloseCircleOutlined /> : null}
-          {status}
-        </Tag>
-      ),
-    },
-    {
-      title: '操作',
-      key: 'actions',
-      width: isMobile ? 'auto' : 250,
-      render: (_: any, record: Agent) => (
-        <Space size="small" wrap>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => {
-            setEditingAgent(record)
-            form.setFieldsValue(record)
-            setModalVisible(true)
-          }}>编辑</Button>
-          {record.status === 'Active' ? (
-            <Popconfirm title="停止此 Agent？" onConfirm={() => handleStatus(record, 'Inactive')}>
-              <Button type="link" size="small" danger icon={<PoweroffOutlined />}>停止</Button>
-            </Popconfirm>
-          ) : (
-            <Popconfirm title="启动此 Agent？" onConfirm={() => handleStatus(record, 'Active')}>
-              <Button type="link" size="small" icon={<PoweroffOutlined />} style={{ color: '#52c41a' }}>启动</Button>
-            </Popconfirm>
-          )}
-          <Popconfirm title="确定删除？" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>删除</Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ]
-
-  // Mobile: render table as list
-  if (isMobile) {
-    return (
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-          <Title level={4} style={{ margin: 0 }}>🤖 Agent 管理</Title>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setEditingAgent(null); setModalVisible(true) }}>新增</Button>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>加载中...</div>
-          ) : agents.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
-              <div>暂无 Agent，点击上方按钮创建</div>
-            </div>
-          ) : (
-            agents.map(agent => (
-              <Card
-                key={agent.id}
-                size="small"
-                hoverable
-                onClick={() => { setDetailAgent(agent); setDrawerVisible(true) }}
-                style={{ borderRadius: 8 }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                      {agent.name}
-                      <Tag color={agent.status === 'Active' ? 'green' : 'default'} style={{ marginLeft: 8 }}>
-                        {agent.status}
-                      </Tag>
-                    </div>
-                    <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>{agent.description}</div>
-                    <Tag color={agent.agentType === 'Goldfish' ? 'green' : agent.agentType === 'Openclaw' ? 'blue' : 'purple'}>{agent.agentType}</Tag>
-                  </div>
-                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                    <Button type="text" size="small" icon={<EditOutlined />} onClick={(e) => {
-                      e.stopPropagation()
-                      setEditingAgent(agent)
-                      form.setFieldsValue(agent)
-                      setModalVisible(true)
-                    }} />
-                    <Popconfirm title={agent.status === 'Active' ? '停止' : '启动'} onConfirm={(e) => {
-                      e?.stopPropagation()
-                      handleStatus(agent, agent.status === 'Active' ? 'Inactive' : 'Active')
-                    }}>
-                      <Button type="text" size="small" icon={<PoweroffOutlined />} style={{ color: agent.status === 'Active' ? '#ff4d4f' : '#52c41a' }} />
-                    </Popconfirm>
-                    <Popconfirm title="确定删除？" onConfirm={(e) => {
-                      e?.stopPropagation()
-                      handleDelete(agent.id)
-                    }}>
-                      <Button type="text" size="small" danger icon={<DeleteOutlined />} />
-                    </Popconfirm>
-                  </div>
-                </div>
-              </Card>
-            ))
-          )}
-        </div>
-
-        {/* Edit/Create Modal */}
-        <Modal
-          title={editingAgent ? '编辑 Agent' : '新增 Agent'}
-          open={modalVisible}
-          onCancel={() => { setModalVisible(false); form.resetFields(); setEditingAgent(null) }}
-          onOk={handleSubmit}
-          width={isMobile ? '95vw' : 500}
-        >
-          <Form form={form} layout="vertical">
-            <Form.Item name="name" label="名称" rules={[{ required: true, message: '请输入名称' }]}>
-              <Input placeholder="Agent 名称" />
-            </Form.Item>
-            <Form.Item name="description" label="描述">
-              <Input.TextArea rows={3} placeholder="Agent 描述" />
-            </Form.Item>
-            <Form.Item name="agentType" label="智能体类型" rules={[{ required: true, message: '请选择智能体类型' }]} initialValue="Goldfish">
-              <Select placeholder="选择智能体类型" options={agentTypeOptions} />
-            </Form.Item>
-            <Form.Item name="serviceUrl" label="服务地址">
-              <Input placeholder="Agent 服务地址 (如 http://127.0.0.1:5101)" />
-            </Form.Item>
-            <Form.Item name="agentId" label="智能体ID">
-              <Input placeholder="Agent 唯一标识" />
-            </Form.Item>
-            <Form.Item name="token" label="TOKEN">
-              <Input.Password placeholder="认证 Token" />
-            </Form.Item>
-            <Form.Item name="status" label="状态" initialValue="Inactive">
-              <Select options={[{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }]} />
-            </Form.Item>
-          </Form>
-        </Modal>
-
-        {/* Detail Drawer */}
-        <Drawer
-          title="Agent 详情"
-          placement="right"
-          open={drawerVisible}
-          onClose={() => setDrawerVisible(false)}
-          width={isMobile ? '100%' : 480}
-        >
-          {detailAgent && (
-            <div>
-              <Card size="small" style={{ marginBottom: 16 }}>
-                <Title level={5}>{detailAgent.name}</Title>
-                <Text type="secondary">{detailAgent.description}</Text>
-                <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  <Tag color={detailAgent.agentType === 'Goldfish' ? 'green' : detailAgent.agentType === 'Openclaw' ? 'blue' : 'purple'}>{detailAgent.agentType}</Tag>
-                  <Tag>{detailAgent.serviceUrl || '-'}</Tag>
-                  <Tag>{detailAgent.agentId || '-'}</Tag>
-                  <Tag>{detailAgent.token ? `${detailAgent.token.substring(0, 8)}****` : '-'}</Tag>
-                  <Tag color={detailAgent.status === 'Active' ? 'green' : 'default'}>{detailAgent.status}</Tag>
-                </div>
-              </Card>
-              <div style={{ fontSize: 14 }}>
-                <div style={{ marginBottom: 8, color: '#999' }}>创建时间</div>
-                <div style={{ marginBottom: 16 }}>{detailAgent.createdAt || '-'}</div>
-                <div style={{ marginBottom: 8, color: '#999' }}>更新时间</div>
-                <div>{detailAgent.updatedAt || '-'}</div>
-              </div>
-            </div>
-          )}
-        </Drawer>
-      </div>
-    )
+  const getStatusBadge = (status: string) => {
+    if (status === 'Active') return <Tag icon={<CheckCircleOutlined />} color="success" style={{ borderRadius: 20 }}>运行中</Tag>
+    if (status === 'Error') return <Tag icon={<CloseCircleOutlined />} color="error" style={{ borderRadius: 20 }}>异常</Tag>
+    return <Tag style={{ borderRadius: 20, background: '#fafafa', color: '#999', border: '1px solid #f0f0f0' }}>已停止</Tag>
   }
 
-  // Desktop: use Table
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <Title level={4} style={{ margin: 0 }}>🤖 Agent 管理</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setEditingAgent(null); setModalVisible(true) }}>新增</Button>
+    <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 20px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <Title level={3} style={{ margin: 0 }}>🤖 智能体管理</Title>
+          <Text type="secondary" style={{ fontSize: 14 }}>管理和配置所有智能体服务</Text>
+        </div>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => { form.resetFields(); setEditingAgent(null); setModalVisible(true) }}
+          style={{ borderRadius: 8, height: 40, fontSize: 15 }}
+        >
+          新增智能体
+        </Button>
       </div>
-      <Card style={{ borderRadius: 8 }}>
-        <Table
-          columns={columns}
-          dataSource={agents}
-          rowKey="id"
-          loading={loading}
-          pagination={{ pageSize: 10 }}
-          locale={{ emptyText: '暂无 Agent 数据' }}
-        />
-      </Card>
 
-      {/* Edit/Create Modal */}
+      {/* Stats bar */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+        <Card size="small" style={{ flex: 1, borderRadius: 12, border: '1px solid #f0f0f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#e6f7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>📊</div>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 700 }}>{agents.length}</div>
+              <div style={{ fontSize: 13, color: '#999' }}>全部智能体</div>
+            </div>
+          </div>
+        </Card>
+        <Card size="small" style={{ flex: 1, borderRadius: 12, border: '1px solid #f0f0f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f6ffed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>✅</div>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: '#52c41a' }}>{agents.filter(a => a.status === 'Active').length}</div>
+              <div style={{ fontSize: 13, color: '#999' }}>运行中</div>
+            </div>
+          </div>
+        </Card>
+        <Card size="small" style={{ flex: 1, borderRadius: 12, border: '1px solid #f0f0f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fffbe6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>⏸️</div>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: '#faad14' }}>{agents.filter(a => a.status !== 'Active').length}</div>
+              <div style={{ fontSize: 13, color: '#999' }}>已停止</div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Card Grid */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 60, color: '#999', fontSize: 15 }}>加载中...</div>
+      ) : agents.length === 0 ? (
+        <Card style={{ borderRadius: 12, border: '2px dashed #d9d9d9' }}>
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <div style={{ fontSize: 56, marginBottom: 16 }}>📭</div>
+            <Title level={5} style={{ color: '#999' }}>暂无智能体</Title>
+            <Text type="secondary">点击上方"新增智能体"按钮开始配置</Text>
+          </div>
+        </Card>
+      ) : (
+        <Row gutter={[20, 20]}>
+          {agents.map(agent => {
+            const style = agentTypeStyles[agent.agentType] || { bg: '#f5f5f5', color: '#999', tag: 'default', icon: '🤖' }
+            return (
+              <Col xs={24} sm={12} md={8} lg={8} xl={6} key={agent.id}>
+                <Card
+                  hoverable
+                  style={{
+                    borderRadius: 16,
+                    border: `1px solid ${agent.status === 'Active' ? '#b7eb8f' : '#f0f0f0'}`,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    transition: 'all 0.2s',
+                  }}
+                  bodyStyle={{ padding: 20 }}
+                  onClick={() => { setDetailAgent(agent); setDrawerVisible(true) }}
+                >
+                  {/* Card Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 12,
+                          background: style.bg,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 24,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {style.icon}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {agent.name}
+                        </div>
+                        {getStatusBadge(agent.status)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  {agent.description && (
+                    <Text type="secondary" style={{ fontSize: 13, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, marginBottom: 12 }}>
+                      {agent.description}
+                    </Text>
+                  )}
+
+                  {/* Tags Row */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+                    <Tag color={style.tag} style={{ borderRadius: 6, margin: 0 }}>{agent.agentType}</Tag>
+                    {agent.serviceUrl && (
+                      <Tooltip title={agent.serviceUrl}>
+                        <Tag icon={<GlobalOutlined />} style={{ borderRadius: 6, margin: 0, fontSize: 11, padding: '2px 6px' }}>{agent.serviceUrl}</Tag>
+                      </Tooltip>
+                    )}
+                    {agent.agentId && (
+                      <Tooltip title={agent.agentId}>
+                        <Tag icon={<KeyOutlined />} style={{ borderRadius: 6, margin: 0, fontSize: 11, padding: '2px 6px' }}>#{agent.agentId}</Tag>
+                      </Tooltip>
+                    )}
+                  </div>
+
+                  {/* Footer Actions */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f5f5f5', paddingTop: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#bbb' }}>
+                      <ClockCircleOutlined />
+                      {new Date(agent.updatedAt).toLocaleDateString('zh-CN')}
+                    </div>
+                    <Space size={4}>
+                      <Button type="text" size="small" icon={<EditOutlined />} onClick={(e) => {
+                        e.stopPropagation()
+                        setEditingAgent(agent)
+                        form.setFieldsValue(agent)
+                        setModalVisible(true)
+                      }} style={{ borderRadius: 8 }} />
+                      {agent.status === 'Active' ? (
+                        <Popconfirm title="停止此智能体？" onConfirm={(e) => { e?.stopPropagation(); handleStatus(agent, 'Inactive') }}>
+                          <Button type="text" size="small" danger icon={<PoweroffOutlined />} onClick={(e) => e.stopPropagation()} style={{ borderRadius: 8 }} />
+                        </Popconfirm>
+                      ) : (
+                        <Popconfirm title="启动此智能体？" onConfirm={(e) => { e?.stopPropagation(); handleStatus(agent, 'Active') }}>
+                          <Button type="text" size="small" icon={<PoweroffOutlined />} style={{ color: '#52c41a', borderRadius: 8 }} onClick={(e) => e.stopPropagation()} />
+                        </Popconfirm>
+                      )}
+                      <Popconfirm title="确定删除？" onConfirm={(e) => { e?.stopPropagation(); handleDelete(agent.id) }}>
+                        <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={(e) => e.stopPropagation()} style={{ borderRadius: 8 }} />
+                      </Popconfirm>
+                    </Space>
+                  </div>
+                </Card>
+              </Col>
+            )
+          })}
+        </Row>
+      )}
+
+      {/* Edit/Create Modal — 紧凑布局 */}
       <Modal
-        title={editingAgent ? '编辑 Agent' : '新增 Agent'}
+        title={editingAgent ? '编辑智能体' : '新增智能体'}
         open={modalVisible}
         onCancel={() => { setModalVisible(false); form.resetFields(); setEditingAgent(null) }}
         onOk={handleSubmit}
-        width={500}
+        okText={editingAgent ? '保存' : '创建'}
+        cancelText="取消"
+        destroyOnClose
+        styles={{ body: { padding: '12px 24px' } }}
       >
-        <Form form={form} layout="vertical">
-          <Form.Item name="name" label="名称" rules={[{ required: true, message: '请输入名称' }]}>
-            <Input placeholder="Agent 名称" />
+        <Form form={form} layout="vertical" style={{ fontSize: 13 }}>
+          <Form.Item name="name" label="智能体名称" rules={[{ required: true, message: '请输入名称' }]}>
+            <Input placeholder="例如：客服助手" />
           </Form.Item>
           <Form.Item name="description" label="描述">
-            <Input.TextArea rows={3} placeholder="Agent 描述" />
+            <Input.TextArea rows={2} placeholder="描述这个智能体的功能" />
           </Form.Item>
-          <Form.Item name="agentType" label="智能体类型" rules={[{ required: true, message: '请选择智能体类型' }]} initialValue="Goldfish">
-            <Select placeholder="选择智能体类型" options={agentTypeOptions} />
-          </Form.Item>
-          <Form.Item name="serviceUrl" label="服务地址">
-            <Input placeholder="Agent 服务地址 (如 http://127.0.0.1:5101)" />
-          </Form.Item>
-          <Form.Item name="agentId" label="智能体ID">
-            <Input placeholder="Agent 唯一标识" />
-          </Form.Item>
-          <Form.Item name="token" label="TOKEN">
+          {/* 智能体类型 + 服务地址 + 智能体ID + TOKEN 紧凑分组 */}
+          <Row gutter={12}>
+            <Col span={8}>
+              <Form.Item name="agentType" label="智能体类型" rules={[{ required: true, message: '请选择类型' }]} initialValue="Goldfish" style={{ marginBottom: 0 }}>
+                <Select options={agentTypeOptions} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="serviceUrl" label="服务地址" style={{ marginBottom: 0 }}>
+                <Input placeholder="http://127.0.0.1:5101" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="agentId" label="智能体ID" style={{ marginBottom: 0 }}>
+                <Input placeholder="唯一标识" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="token" label="TOKEN" style={{ marginBottom: 0 }}>
             <Input.Password placeholder="认证 Token" />
           </Form.Item>
-          <Form.Item name="status" label="状态" initialValue="Inactive">
-            <Select options={[{ value: 'Active', label: 'Active' }, { value: 'Inactive', label: 'Inactive' }]} />
+          <Form.Item name="status" label="状态" initialValue="Inactive" style={{ marginBottom: 0 }}>
+            <Select options={[{ value: 'Active', label: 'Active (运行中)' }, { value: 'Inactive', label: 'Inactive (已停止)' }]} />
           </Form.Item>
         </Form>
       </Modal>
 
       {/* Detail Drawer */}
       <Drawer
-        title="Agent 详情"
+        title={detailAgent?.name}
         placement="right"
         open={drawerVisible}
         onClose={() => setDrawerVisible(false)}
@@ -363,19 +318,43 @@ export default function Agents() {
       >
         {detailAgent && (
           <div>
-            <Card size="small" style={{ marginBottom: 16 }}>
-              <Title level={5}>{detailAgent.name}</Title>
-              <Text type="secondary">{detailAgent.description}</Text>
-              <div style={{ marginTop: 12 }}>
-                <Tag color={detailAgent.agentType === 'Goldfish' ? 'green' : detailAgent.agentType === 'Openclaw' ? 'blue' : 'purple'}>{detailAgent.agentType}</Tag>
-                <Tag color={detailAgent.status === 'Active' ? 'green' : 'default'}>{detailAgent.status}</Tag>
+            <Card size="small" style={{ marginBottom: 16, borderRadius: 12, border: '1px solid #f0f0f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+                <Avatar size={64} style={{ background: agentTypeStyles[detailAgent.agentType]?.bg || '#f5f5f5', color: agentTypeStyles[detailAgent.agentType]?.color, fontSize: 32 }}>
+                  {agentTypeStyles[detailAgent.agentType]?.icon || '🤖'}
+                </Avatar>
+                <div>
+                  <Title level={4} style={{ margin: 0 }}>{detailAgent.name}</Title>
+                  {getStatusBadge(detailAgent.status)}
+                </div>
+              </div>
+              <Paragraph style={{ color: '#666', margin: '0 0 16px 0' }}>{detailAgent.description || '暂无描述'}</Paragraph>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <Tag color={agentTypeStyles[detailAgent.agentType]?.tag}>{detailAgent.agentType}</Tag>
+                {detailAgent.serviceUrl && <Tag icon={<GlobalOutlined />}>{detailAgent.serviceUrl}</Tag>}
+                {detailAgent.agentId && <Tag icon={<KeyOutlined />}>#{detailAgent.agentId}</Tag>}
               </div>
             </Card>
-            <div style={{ fontSize: 14 }}>
-              <div style={{ marginBottom: 8, color: '#999' }}>创建时间</div>
-              <div style={{ marginBottom: 16 }}>{detailAgent.createdAt || '-'}</div>
-              <div style={{ marginBottom: 8, color: '#999' }}>更新时间</div>
-              <div>{detailAgent.updatedAt || '-'}</div>
+
+            <div style={{ background: '#fafafa', borderRadius: 12, padding: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>时间信息</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
+                <Text type="secondary">创建时间</Text>
+                <Text>{detailAgent.createdAt ? new Date(detailAgent.createdAt).toLocaleString('zh-CN') : '-'}</Text>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <Text type="secondary">更新时间</Text>
+                <Text>{detailAgent.updatedAt ? new Date(detailAgent.updatedAt).toLocaleString('zh-CN') : '-'}</Text>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+              <Button type="primary" icon={<EditOutlined />} block onClick={() => { setEditingAgent(detailAgent); setDrawerVisible(false); setModalVisible(true); form.setFieldsValue(detailAgent) }} style={{ borderRadius: 8 }}>
+                编辑智能体
+              </Button>
+              <Popconfirm title="确定删除此智能体？" onConfirm={() => handleDelete(detailAgent.id)}>
+                <Button danger icon={<DeleteOutlined />} block style={{ borderRadius: 8 }}>删除</Button>
+              </Popconfirm>
             </div>
           </div>
         )}

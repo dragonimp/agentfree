@@ -34,7 +34,7 @@ export const getChatModels = (agentId: number) => api.get<ChatModel[]>(`/agents/
 // ============ Stream Chat API (SSE) ============
 export interface StreamChatRequest {
   sessionId: string
-  message: string
+  content: string
 }
 
 export interface StreamChatDelta {
@@ -56,7 +56,7 @@ export function streamChat(request: StreamChatRequest): Promise<{
     },
     body: JSON.stringify({
       sessionId: request.sessionId,
-      message: request.message,
+      content: request.content,
     }),
     signal: abortController.signal,
   })

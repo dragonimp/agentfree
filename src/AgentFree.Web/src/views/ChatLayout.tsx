@@ -58,7 +58,6 @@ export default function ChatLayout() {
       message.success('创建成功')
       setCreateModal(false)
       form.resetFields()
-      // 直接跳转到新创建的会话，进入聊天界面
       if (newSession && newSession.id) {
         navigate(`/chat/${newSession.id}`)
       } else {
@@ -81,19 +80,18 @@ export default function ChatLayout() {
   }
 
   const handleNewChat = () => {
-    // 直接打开新建会话对话框
     setCreateModal(true)
     setCollapsed(false)
   }
 
   const menuItems = sessions.map(s => ({
     key: s.id,
-    icon: <MessageOutlined />,
+    icon: <MessageOutlined style={{ fontSize: 14 }} />,
     label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: 0 }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, fontSize: 13 }}>{s.name}</span>
         <Popconfirm title="删除此会话？" onConfirm={() => handleDelete(s.id)} okText="确定" cancelText="取消">
-          <DeleteOutlined style={{ color: '#999', fontSize: 12, flexShrink: 0, marginLeft: 4 }} />
+          <DeleteOutlined style={{ color: '#bbb', fontSize: 13, flexShrink: 0, marginLeft: 4 }} />
         </Popconfirm>
       </div>
     ),
@@ -101,14 +99,15 @@ export default function ChatLayout() {
 
   const siderContent = (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '12px 16px' }}>
-        <Button type="primary" icon={<PlusOutlined />} block onClick={handleNewChat} style={{ borderRadius: 8 }}>
+      <div style={{ padding: '16px 16px 8px' }}>
+        <Button type="primary" icon={<PlusOutlined />} block onClick={handleNewChat} style={{ borderRadius: 10, height: 40 }}>
           新建会话
         </Button>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 8px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 8px 8px' }}>
         {sessions.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '32px 16px', color: '#999', fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: '32px 16px', color: '#bbb', fontSize: 13 }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>📭</div>
             暂无会话
           </div>
         ) : (
@@ -124,32 +123,43 @@ export default function ChatLayout() {
     </div>
   )
 
+  // Mobile layout with fixed chat area
   if (isMobile) {
     return (
-      <Layout style={{ minHeight: '100vh' }}>
-        <Layout>
-          <Drawer
-            title="聊天会话"
-            placement="left"
-            width={280}
-            open={drawerOpen}
-            onClose={() => setDrawerOpen(false)}
-            styles={{ body: { padding: 0 } }}
-          >
-            {siderContent}
-          </Drawer>
-          <Content style={{ padding: 0 }}>
-            <div style={{ background: '#fff', padding: '12px 16px', display: 'flex', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <Layout style={{ height: '100dvh', overflow: 'hidden' }}>
+        <Drawer
+          title="会话列表"
+          placement="left"
+          width={280}
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          styles={{ body: { padding: 0 } }}
+        >
+          {siderContent}
+        </Drawer>
+        <Layout style={{ height: '100dvh', overflow: 'hidden' }}>
+          <Content style={{ padding: 0, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {/* Mobile header bar */}
+            <div style={{ background: '#fff', padding: '10px 12px', display: 'flex', alignItems: 'center', borderBottom: '1px solid #f0f0f0', flexShrink: 0 }}>
               <Button type="text" icon={<MenuFoldOutlined />} onClick={() => setDrawerOpen(true)} style={{ marginRight: 8 }} />
-              <Title level={5} style={{ margin: 0, flex: 1 }}>
-                {currentSessionId ? sessions.find(s => s.id === currentSessionId)?.name || '聊天' : '新建会话'}
+              <Title level={5} style={{ margin: 0, flex: 1, fontSize: 15 }}>
+                {currentSessionId ? sessions.find(s => s.id === currentSessionId)?.name || '聊天' : 'AgentFree'}
               </Title>
-              <Button type="text" icon={<PlusOutlined />} onClick={handleNewChat} />
+              <Button type="text" icon={<PlusOutlined />} onClick={handleNewChat} style={{ marginLeft: 8 }} />
             </div>
-            <ChatLayoutContent />
+            {/* Chat area fills remaining space */}
+            <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              {currentSessionId ? <ChatView sessionId={currentSessionId} /> : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', color: '#bbb' }}>
+                  <div style={{ fontSize: 48, marginBottom: 12 }}>🐠</div>
+                  <div style={{ fontSize: 16, marginBottom: 4 }}>欢迎使用 AgentFree</div>
+                  <div style={{ fontSize: 13 }}>打开左侧菜单选择或创建会话</div>
+                </div>
+              )}
+            </div>
           </Content>
         </Layout>
-        <Modal title="新建会话" open={createModal} onCancel={() => setCreateModal(false)} onOk={handleCreate} width={360}>
+        <Modal title="新建会话" open={createModal} onCancel={() => setCreateModal(false)} onOk={handleCreate} width={340}>
           <Form form={form} layout="vertical">
             <Form.Item name="agentId" label="智能体" rules={[{ required: true, message: '请选择智能体' }]}>
               <Select placeholder="选择智能体">
@@ -165,8 +175,9 @@ export default function ChatLayout() {
     )
   }
 
+  // Desktop layout with fixed chat area
   return (
-    <Layout style={{ minHeight: 'calc(100vh - 64px)' }}>
+    <Layout style={{ height: '100dvh', overflow: 'hidden' }}>
       <Sider
         collapsible
         collapsed={collapsed}
@@ -176,12 +187,27 @@ export default function ChatLayout() {
         style={{
           borderRight: `1px solid ${token.colorBorderSecondary}`,
           background: '#fff',
+          overflow: 'hidden',
         }}
+        breakpoint="lg"
+        collapsedWidth={80}
       >
         {siderContent}
       </Sider>
-      <Content style={{ padding: 0, background: '#f5f6fa' }}>
-        <ChatLayoutContent />
+      <Content style={{ padding: 0, background: '#f5f6fa', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: '100%', maxWidth: 860, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {currentSessionId ? (
+              <ChatView sessionId={currentSessionId} />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', color: '#bbb' }}>
+                <div style={{ fontSize: 64, marginBottom: 16 }}>🐠</div>
+                <div style={{ fontSize: 20, marginBottom: 8, fontWeight: 500 }}>欢迎使用 AgentFree</div>
+                <div style={{ fontSize: 14 }}>从左侧选择或创建一个会话开始聊天</div>
+              </div>
+            )}
+          </div>
+        </div>
       </Content>
       <Modal title="新建会话" open={createModal} onCancel={() => setCreateModal(false)} onOk={handleCreate} width={420}>
         <Form form={form} layout="vertical">
@@ -196,26 +222,5 @@ export default function ChatLayout() {
         </Form>
       </Modal>
     </Layout>
-  )
-}
-
-function ChatLayoutContent() {
-  const location = useLocation()
-  const sessionId = location.pathname.split('/chat/')[1]
-
-  return (
-    <div style={{ height: 'calc(100vh - 64px)', display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
-      <div style={{ width: '100%', maxWidth: 860 }}>
-        {sessionId ? (
-          <ChatView sessionId={sessionId} />
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', color: '#999' }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>🐠</div>
-            <div style={{ fontSize: 18, marginBottom: 8 }}>欢迎使用 AgentFree</div>
-            <div style={{ fontSize: 14 }}>选择或创建一个会话开始聊天</div>
-          </div>
-        )}
-      </div>
-    </div>
   )
 }
