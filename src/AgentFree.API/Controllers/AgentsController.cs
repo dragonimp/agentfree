@@ -33,6 +33,10 @@ namespace AgentFree.API.Controllers
                 agent.Name,
                 agent.Description,
                 agent.SystemPrompt,
+                agent.AgentType,
+                agent.ServiceUrl,
+                agent.AgentId,
+                agent.Token,
                 agent.Status,
                 agent.CreatedAt,
                 agent.UpdatedAt
@@ -51,7 +55,12 @@ namespace AgentFree.API.Controllers
                 AgentId = dto.AgentId,
                 Token = dto.Token,
                 SystemPrompt = dto.SystemPrompt,
-                Status = "Inactive"
+                Status = "Inactive",
+                // 对话大模型字段
+                LLMProvider = dto.LLMProvider,
+                LLMBaseUrl = dto.LLMBaseUrl,
+                LLMModelName = dto.LLMModelName,
+                LLMApiKey = dto.LLMApiKey
             };
             _ctx.Agents.Add(agent);
             await _ctx.SaveChangesAsync();
@@ -64,6 +73,9 @@ namespace AgentFree.API.Controllers
                 agent.AgentId,
                 agent.Token,
                 agent.SystemPrompt,
+                agent.LLMProvider,
+                agent.LLMBaseUrl,
+                agent.LLMModelName,
                 agent.Status,
                 agent.CreatedAt,
                 agent.UpdatedAt
@@ -84,6 +96,11 @@ namespace AgentFree.API.Controllers
             if (!string.IsNullOrEmpty(dto.AgentId)) agent.AgentId = dto.AgentId;
             if (!string.IsNullOrEmpty(dto.Token)) agent.Token = dto.Token;
             if (!string.IsNullOrEmpty(dto.Status)) agent.Status = dto.Status;
+            // 对话大模型字段
+            if (!string.IsNullOrEmpty(dto.LLMProvider)) agent.LLMProvider = dto.LLMProvider;
+            if (!string.IsNullOrEmpty(dto.LLMBaseUrl)) agent.LLMBaseUrl = dto.LLMBaseUrl;
+            if (!string.IsNullOrEmpty(dto.LLMModelName)) agent.LLMModelName = dto.LLMModelName;
+            if (!string.IsNullOrEmpty(dto.LLMApiKey)) agent.LLMApiKey = dto.LLMApiKey;
             agent.UpdatedAt = DateTime.UtcNow;
 
             await _ctx.SaveChangesAsync();
@@ -92,6 +109,7 @@ namespace AgentFree.API.Controllers
                 agent.Name,
                 agent.Description,
                 agent.SystemPrompt,
+                agent.AgentType,
                 agent.Status,
                 agent.CreatedAt,
                 agent.UpdatedAt

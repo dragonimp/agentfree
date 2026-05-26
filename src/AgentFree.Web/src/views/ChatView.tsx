@@ -18,6 +18,7 @@ export default function ChatView({ sessionId }: ChatViewProps) {
   const [loading, setLoading] = useState(false)
   const [session, setSession] = useState<SessionType | null>(null)
   const [streamingContent, setStreamingContent] = useState('')
+  const [error, setError] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortRef = useRef<() => void>(() => {})
 
@@ -35,6 +36,7 @@ export default function ChatView({ sessionId }: ChatViewProps) {
   const loadMessages = async () => {
     if (!sessionId) return
     setLoading(true)
+    setError('')
     try {
       const [messagesRes, sessionRes] = await Promise.all([
         getMessages(sessionId),
@@ -43,7 +45,9 @@ export default function ChatView({ sessionId }: ChatViewProps) {
       setMessages(messagesRes.data || [])
       setSession(sessionRes.data || null)
     } catch (err: any) {
-      message.error('加载消息失败: ' + (err.response?.data?.message || err.message))
+      const msg = err.response?.data?.message || err.message
+      setError('加载消息失败: ' + msg)
+      console.error('Load messages error:', err)
     } finally {
       setLoading(false)
     }
@@ -95,9 +99,10 @@ export default function ChatView({ sessionId }: ChatViewProps) {
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setStreamingContent('')
+    setError('')
 
     try {
-      const { reader, abort } = await streamChat({ sessionId, message: userMessage.content })
+      const { reader, abort } = await streamChat({ sessionId, content: userMessage.content })
       abortRef.current = abort
 
       await parseSSE(reader)
@@ -115,7 +120,9 @@ export default function ChatView({ sessionId }: ChatViewProps) {
         setStreamingContent('')
       }
     } catch (err: any) {
-      message.error('发送失败: ' + (err.response?.data?.message || err.message))
+      const msg = err.response?.data?.message || err.message
+      setError('发送失败: ' + msg)
+      console.error('Send message error:', err)
       setStreamingContent('')
     }
   }
@@ -138,11 +145,12 @@ export default function ChatView({ sessionId }: ChatViewProps) {
         }}
       >
         {!isUser && (
-          <Avatar style={{ backgroundColor: '#667eea', marginRight: 8, flexShrink: 0 }}>
+          <Avatar style={{ backgroundColor: '#667eea', marginRight: 8, flexShrink: 0, width: 36, height: 36, fontSize: 16 }}>
             🐠
           </Avatar>
         )}
         <Card
+          size="small"
           style={{
             maxWidth: '75%',
             background: isUser ? '#e6f4ff' : '#fff',
@@ -172,7 +180,7 @@ export default function ChatView({ sessionId }: ChatViewProps) {
           </Text>
         </Card>
         {isUser && (
-          <Avatar style={{ backgroundColor: '#1890ff', marginLeft: 8, flexShrink: 0 }}>
+          <Avatar style={{ backgroundColor: '#1890ff', marginLeft: 8, flexShrink: 0, width: 36, height: 36, fontSize: 16 }}>
             <UserOutlined />
           </Avatar>
         )}
@@ -181,14 +189,19 @@ export default function ChatView({ sessionId }: ChatViewProps) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Messages area */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      {/* Messages area - internal scroll */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', background: '#f5f6fa' }}>
+        {error && (
+          <div style={{ textAlign: 'center', padding: '12px 0', color: '#ff4d4f', fontSize: 13 }}>
+            {error}
+          </div>
+        )}
         {messages.map(renderMessage)}
         {streamingContent && (
           <div style={{ display: 'flex', marginBottom: 16, justifyContent: 'flex-start' }}>
-            <Avatar style={{ backgroundColor: '#667eea', marginRight: 8, flexShrink: 0 }}>🐠</Avatar>
-            <Card style={{ maxWidth: '75%', background: '#fff', borderColor: '#f0f0f0', borderRadius: 12 }}>
+            <Avatar style={{ backgroundColor: '#667eea', marginRight: 8, flexShrink: 0, width: 36, height: 36, fontSize: 16 }}>🐠</Avatar>
+            <Card size="small" style={{ maxWidth: '75%', background: '#fff', borderColor: '#f0f0f0', borderRadius: 12 }}>
               <ReactMarkdown
                 components={{
                   p: ({ children }) => <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{children}</p>,
@@ -208,8 +221,8 @@ export default function ChatView({ sessionId }: ChatViewProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area */}
-      <div style={{ padding: '12px 24px 16px', background: '#fff', borderTop: `1px solid #f0f0f0` }}>
+      {/* Input area - fixed at bottom */}
+      <div style={{ padding: '12px 24px 16px', background: '#fff', borderTop: '1px solid #f0f0f0', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
           <TextArea
             value={input}

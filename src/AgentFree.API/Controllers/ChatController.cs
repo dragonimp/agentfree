@@ -1,8 +1,9 @@
+using AgentFree.API.Core;
 using AgentFree.API.Data;
 using AgentFree.API.Models;
+using AgentFree.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.AI;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -13,27 +14,54 @@ namespace AgentFree.API.Controllers
     [Route("api/chat")]
     public class ChatController : ControllerBase
     {
-        private readonly IChatClient _chatClient;
+        private readonly IAdapterRouter _adapterRouter;
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILogger<ChatController> _logger;
 
         public ChatController(
-            IChatClient chatClient,
+            IAdapterRouter adapterRouter,
             AppDbContext context,
             IConfiguration configuration,
             ILogger<ChatController> logger)
         {
-            _chatClient = chatClient;
+            _adapterRouter = adapterRouter;
             _context = context;
             _configuration = configuration;
             _logger = logger;
+        }
+
+        // GET /api/chat/adapters — 列出可用适配器
+        [HttpGet("adapters")]
+        public IActionResult GetAdapters()
+        {
+            var adapters = _adapterRouter.GetAvailableAdapters();
+            return Ok(adapters);
         }
 
         // GET /api/chat/models?agentId={id}
         [HttpGet("models")]
         public ActionResult<object> GetModels([FromQuery] int? agentId = null)
         {
+            if (agentId.HasValue)
+            {
+                var agent = _context.Agents.FindAsync(agentId.Value).Result;
+                if (agent != null)
+                {
+                    // 对话大模型类型的自定义配置
+                    if (agent.AgentType == "对话大模型")
+                    {
+                        return Ok(new
+                        {
+                            provider = agent.LLMProvider ?? "Ollama",
+                            model = agent.LLMModelName ?? "qwen2.5:7b",
+                            baseUrl = (agent.LLMProvider ?? "Ollama") == "OpenAI" ? null : agent.LLMBaseUrl ?? "http://localhost:11434",
+                            models = new[] { agent.LLMModelName ?? "qwen2.5:7b" }
+                        });
+                    }
+                }
+            }
+
             var provider = _configuration["LLM:Provider"] ?? "Ollama";
             var baseUrl = _configuration["LLM:BaseUrl"] ?? "http://localhost:11434";
             var model = _configuration["LLM:Model"] ?? "qwen2.5:7b";
@@ -61,6 +89,33 @@ namespace AgentFree.API.Controllers
                 return;
             }
 
+            // 加载 Agent 信息
+            AgentInfo? agentInfo = null;
+            if (dto.AgentId.HasValue)
+            {
+                var agent = await _context.Agents.FindAsync(dto.AgentId.Value);
+                if (agent != null)
+                {
+                    agentInfo = new AgentInfo
+                    {
+                        Name = agent.Name,
+                        AgentType = agent.AgentType,
+                        SystemPrompt = agent.SystemPrompt
+                    };
+                    // 填充 ExtraData（对话大模型的 LLM 配置）
+                    if (!string.IsNullOrEmpty(agent.LLMProvider))
+                        agentInfo.ExtraData["LLMProvider"] = agent.LLMProvider;
+                    if (!string.IsNullOrEmpty(agent.LLMBaseUrl))
+                        agentInfo.ExtraData["LLMBaseUrl"] = agent.LLMBaseUrl;
+                    if (!string.IsNullOrEmpty(agent.LLMModelName))
+                        agentInfo.ExtraData["LLMModelName"] = agent.LLMModelName;
+                    if (!string.IsNullOrEmpty(agent.LLMApiKey))
+                        agentInfo.ExtraData["LLMApiKey"] = agent.LLMApiKey;
+                }
+            }
+
+            var agentType = agentInfo?.AgentType ?? "Goldfish";
+
             // Ensure session exists, create if not
             var session = await _context.Sessions.FindAsync(sessionId);
             if (session == null)
@@ -84,85 +139,77 @@ namespace AgentFree.API.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Save user message
-            var userMessage = new Message
+            // 保存用户消息
+            var userMessage = dto.Content ?? string.Empty;
+            _context.Messages.Add(new Message
             {
                 SessionId = sessionId,
                 Role = dto.Role ?? "user",
-                Content = dto.Content ?? string.Empty,
-                ToolCallId = dto.ToolCallId,
+                Content = userMessage,
                 CreatedAt = DateTime.UtcNow
-            };
-            _context.Messages.Add(userMessage);
+            });
             await _context.SaveChangesAsync();
 
-            // Load conversation history
-            var history = await _context.Messages
-                .Where(m => m.SessionId == sessionId)
-                .OrderBy(m => m.CreatedAt)
-                .ToListAsync();
-
-            // Convert to ChatMessage for IChatClient
-            var chatMessages = new List<ChatMessage>();
-            foreach (var msg in history)
+            // 选择适配器
+            IAdapterService adapter;
+            try
             {
-                var role = msg.Role.ToLowerInvariant();
-                if (role == "system")
-                    chatMessages.Add(new ChatMessage(ChatRole.System, msg.Content));
-                else if (role == "user")
-                    chatMessages.Add(new ChatMessage(ChatRole.User, msg.Content));
-                else if (role == "assistant")
-                    chatMessages.Add(new ChatMessage(ChatRole.Assistant, msg.Content));
-                else if (role == "tool")
-                    chatMessages.Add(new ChatMessage(ChatRole.Tool, msg.Content));
+                adapter = _adapterRouter.GetAdapter(agentType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get adapter for type {AgentType}", agentType);
+                var errorData = new { error = $"适配器路由失败: {ex.Message}" };
+                HttpContext.Response.StatusCode = 500;
+                HttpContext.Response.ContentType = "application/json";
+                await HttpContext.Response.WriteAsync(JsonSerializer.Serialize(errorData));
+                return;
             }
 
-            var chatOptions = new ChatOptions();
-
-            // Stream response via SSE
+            // SSE 流式响应
             HttpContext.Response.ContentType = "text/event-stream";
             HttpContext.Response.Headers.CacheControl = "no-cache";
             HttpContext.Response.Headers.Connection = "keep-alive";
 
             var sw = new StreamWriter(HttpContext.Response.Body, Encoding.UTF8);
-
             string fullAssistantContent = string.Empty;
 
-            await foreach (var update in _chatClient.GetStreamingResponseAsync(chatMessages, chatOptions, HttpContext.RequestAborted))
+            try
             {
-                var text = update.Text;
-                if (!string.IsNullOrEmpty(text))
-                {
-                    fullAssistantContent += text;
+                _logger.LogInformation("Streaming chat via {AdapterType} for session {SessionId}", agentType, sessionId);
 
-                    var data = new { delta = text };
-                    var json = JsonSerializer.Serialize(data);
-                    await sw.WriteAsync($"data: {json}\n\n");
-                    await sw.FlushAsync();
+                await foreach (var chunk in adapter.StreamChatAsync(agentInfo, sessionId, userMessage, HttpContext.RequestAborted))
+                {
+                    if (!string.IsNullOrEmpty(chunk.Delta))
+                    {
+                        fullAssistantContent += chunk.Delta;
+                        var data = new { delta = chunk.Delta };
+                        var json = JsonSerializer.Serialize(data);
+                        await sw.WriteAsync($"data: {json}\n\n");
+                        await sw.FlushAsync();
+                    }
+
+                    if (chunk.Done)
+                    {
+                        var doneData = new { done = true };
+                        var doneJson = JsonSerializer.Serialize(doneData);
+                        await sw.WriteAsync($"data: {doneJson}\n\n");
+                        await sw.FlushAsync();
+                        break;
+                    }
                 }
             }
-
-            // Done signal
-            var doneData = new { done = true };
-            var doneJson = JsonSerializer.Serialize(doneData);
-            await sw.WriteAsync($"data: {doneJson}\n\n");
-            await sw.FlushAsync();
-
-            // Save assistant response to database
-            if (!string.IsNullOrEmpty(fullAssistantContent))
+            catch (Exception ex)
             {
-                var assistantMessage = new Message
-                {
-                    SessionId = sessionId,
-                    Role = "assistant",
-                    Content = fullAssistantContent,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _context.Messages.Add(assistantMessage);
-                await _context.SaveChangesAsync();
-            }
+                _logger.LogError(ex, "StreamChat error for session {SessionId} via {AdapterType}", sessionId, agentType);
 
-            await sw.FlushAsync();
+                var errorData = new { error = "服务响应失败: " + ex.Message, detail = ex.InnerException?.Message ?? ex.Message, adapter = agentType };
+                var errorJson = JsonSerializer.Serialize(errorData);
+                await sw.WriteAsync($"data: {errorJson}\n\n");
+                await sw.FlushAsync();
+
+                HttpContext.Response.StatusCode = 502;
+            }
         }
     }
 

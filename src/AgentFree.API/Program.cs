@@ -69,7 +69,7 @@ builder.Services.AddSingleton<IChatClient>(sp =>
     }
 
     // Ollama provider (default)
-    var ollamaClient = new OllamaChatClient(llmModel, llmBaseUrl);
+    var ollamaClient = new OllamaChatClient(llmBaseUrl, llmModel);
     return ollamaClient;
 });
 
@@ -84,6 +84,43 @@ builder.Services.AddSingleton<IPromptBuilder, PromptBuilder>();
 
 // ==================== Business Services ====================
 builder.Services.AddScoped<IResponseService, ResponseService>();
+
+// ==================== 适配器服务 ====================
+// HttpClient for Hermes API
+builder.Services.AddHttpClient("Hermes", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(120);
+});
+
+// IAdapterService — GoldfishAdapter（本地 LLM）
+builder.Services.AddSingleton<IAdapterService>(sp =>
+{
+    var chatClient = sp.GetRequiredService<IChatClient>();
+    var context = sp.GetRequiredService<AppDbContext>();
+    var logger = sp.GetRequiredService<ILogger<GoldfishAdapter>>();
+    return new GoldfishAdapter(chatClient, context, logger);
+});
+
+// IAdapterService — HermesAdapter（跨框架通信）
+builder.Services.AddSingleton<IAdapterService>(sp =>
+{
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var context = sp.GetRequiredService<AppDbContext>();
+    var config = sp.GetRequiredService<IConfiguration>();
+    var logger = sp.GetRequiredService<ILogger<HermesAdapter>>();
+    return new HermesAdapter(httpClientFactory, context, config, logger);
+});
+
+// IAdapterService — DirectLLMAdapter（直接配置原始大模型）
+builder.Services.AddSingleton<IAdapterService>(sp =>
+{
+    var context = sp.GetRequiredService<AppDbContext>();
+    var logger = sp.GetRequiredService<ILogger<DirectLLMAdapter>>();
+    return new DirectLLMAdapter(context, logger);
+});
+
+// IAdapterRouter — 适配器路由器（自动注册所有 IAdapterService）
+builder.Services.AddSingleton<IAdapterRouter, AdapterRouter>();
 
 // ==================== Build & Run ====================
 var app = builder.Build();

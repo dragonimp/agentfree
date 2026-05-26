@@ -99,7 +99,7 @@ export default function Chat() {
     setStreamingContent('')
 
     try {
-      const { reader, abort } = await streamChat({ sessionId, message: userMessage.content })
+      const { reader, abort } = await streamChat({ sessionId, content: userMessage.content })
       abortRef.current = abort
 
       await parseSSE(reader)
