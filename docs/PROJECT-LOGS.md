@@ -28,27 +28,29 @@
   - Chat Models API ✅ HTTP 200
   - 前端 ✅ HTTP 200
 
-### 03:xx — 新增适配器层实现 Hermes/Goldfish 双适配器支持
+### 10:09 — 适配器层重构 + 前端聊天界面优化
 
-- **新增适配器架构**：
-  - 定义 IAdapterService 接口（标准模式 + 流式模式）
-  - 实现 GoldfishAdapter（对接本地 LLM）
-  - 实现 HermesAdapter（对接 Hermes API Server）
+- **GoldfishAdapter 编译修复**：
+  - 使用 using 别名解决 `ChatMessage` 类型歧义（MS.AI vs Core）
+  - 添加 `MsChatMessage` 和 `CoreChatMessage` 别名
 - **ChatController 重构**：
-  - 注入 IAdapterService 替代直接使用 IChatClient
-  - 根据 Agent.AgentType 自动选择适配器
-  - 保留原有 Session 管理和消息持久化逻辑
+  - 注入 `IAdapterService` 替代直接使用 `IChatClient`
+  - 根据 `Agent.AgentType` 自动选择适配器（Goldfish/Hermes）
+  - 保留 Session 管理和消息持久化逻辑
 - **DI 注册**：
-  - Program.cs 注册 IAdapterService -> GoldfishAdapter（默认）
-  - 支持后续扩展更多适配器
-- **前端聊天界面完善**：
-  - ChatLayout.tsx：左侧侧边栏会话管理 + 移动端 Drawer
-  - ChatView.tsx：流式 SSE 聊天 + Markdown 渲染
-  - App.tsx：路由集成 /sessions, /chat/:sessionId
+  - Program.cs 注册 `IAdapterService` → `GoldfishAdapter`（默认）
+  - 支持后续扩展更多适配器（HermesAdapter、OpenClawAdapter 等）
+- **前端聊天界面优化**：
+  - `ChatLayout.tsx`：左侧侧边栏会话管理 + 移动端 Drawer 适配
+  - `ChatView.tsx`：流式 SSE 聊天 + Markdown 渲染 + 停止按钮
+  - `App.tsx`：路由集成 `/chat`, `/chat/:sessionId`
 - **构建部署**：
-  - 前后端均编译通过
-  - 部署到服务器 agent.ai.impx.net
-  - 所有 API 端点验证通过
+  - 前后端均编译通过（0 错误）
+  - 部署到服务器 zz.impx.net
+  - API 服务运行正常（Memory: 39.8M）
+  - 健康检查 ✅ HTTP 200
+  - Sessions API ✅ HTTP 200
+  - 前端页面 ✅ HTTP 200
 
 ---
 
