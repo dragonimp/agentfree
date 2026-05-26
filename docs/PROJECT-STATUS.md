@@ -1,6 +1,6 @@
 # AgentFree（Goldfish）项目状态
 
-> 最后更新：2026-05-24
+> 最后更新：2026-05-26
 
 ## 项目信息
 
@@ -9,7 +9,7 @@
 || **项目编号** | P003 |
 || **项目代号** | Goldfish |
 || **项目名称** | AgentFree |
-|| **状态** | 🟢 开发中 — 聊天功能已上线 |
+|| **状态** | 🟢 开发中 — 适配器层上线 |
 || **负责人** | 志山 |
 || **AI 助手** | @图灵IT-研发马儿 |
 || **开始日期** | 2026-05-05（原始）|
@@ -43,6 +43,15 @@
   - 前端 Chat.tsx（Markdown + 流式 SSE 响应）
   - 路由集成（/sessions, /chat/:sessionId）
   - 服务器部署测试全部通过
+- [x] **适配器层设计实现**：
+  - IAdapterService 接口（标准 + 流式模式）
+  - GoldfishAdapter 对接本地 LLM
+  - HermesAdapter 对接 Hermes API Server
+- [x] **聊天界面优化**：
+  - ChatLayout.tsx（侧边栏 + 移动端 Drawer）
+  - ChatView.tsx（流式 SSE 聊天 + Markdown 渲染）
+  - App.tsx 路由集成优化
+- [x] 流式 SSE 聊天交互
 
 ### 进行中
 

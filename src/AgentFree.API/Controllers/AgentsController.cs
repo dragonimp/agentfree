@@ -46,6 +46,10 @@ namespace AgentFree.API.Controllers
             {
                 Name = dto.Name,
                 Description = dto.Description,
+                AgentType = dto.AgentType ?? "Goldfish",
+                ServiceUrl = dto.ServiceUrl,
+                AgentId = dto.AgentId,
+                Token = dto.Token,
                 SystemPrompt = dto.SystemPrompt,
                 Status = "Inactive"
             };
@@ -55,6 +59,10 @@ namespace AgentFree.API.Controllers
                 agent.Id,
                 agent.Name,
                 agent.Description,
+                agent.AgentType,
+                agent.ServiceUrl,
+                agent.AgentId,
+                agent.Token,
                 agent.SystemPrompt,
                 agent.Status,
                 agent.CreatedAt,
@@ -70,7 +78,11 @@ namespace AgentFree.API.Controllers
 
             if (!string.IsNullOrEmpty(dto.Name)) agent.Name = dto.Name;
             if (!string.IsNullOrEmpty(dto.Description)) agent.Description = dto.Description;
+            if (!string.IsNullOrEmpty(dto.AgentType)) agent.AgentType = dto.AgentType;
             if (dto.SystemPrompt != null) agent.SystemPrompt = dto.SystemPrompt;
+            if (!string.IsNullOrEmpty(dto.ServiceUrl)) agent.ServiceUrl = dto.ServiceUrl;
+            if (!string.IsNullOrEmpty(dto.AgentId)) agent.AgentId = dto.AgentId;
+            if (!string.IsNullOrEmpty(dto.Token)) agent.Token = dto.Token;
             if (!string.IsNullOrEmpty(dto.Status)) agent.Status = dto.Status;
             agent.UpdatedAt = DateTime.UtcNow;
 

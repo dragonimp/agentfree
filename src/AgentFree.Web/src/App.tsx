@@ -1,26 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import { Layout, Menu, Typography, Button } from 'antd'
+import { Layout, Menu, Typography, Button, theme } from 'antd'
 import {
   HomeOutlined,
   ClusterOutlined,
-  TeamOutlined,
-  SettingOutlined,
   MessageOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
 } from '@ant-design/icons'
 import Home from './views/Home'
 import Agents from './views/Agents'
-import Sessions from './views/Sessions'
-import Chat from './views/Chat'
+import ChatLayout from './views/ChatLayout'
 
 const { Header, Content } = Layout
 const { Title } = Typography
 
 const menuItems = [
   { key: '/', icon: <HomeOutlined />, label: '首页' },
-  { key: '/sessions', icon: <MessageOutlined />, label: '聊天会话' },
+  { key: '/chat', icon: <MessageOutlined />, label: '聊天' },
   { key: '/agents', icon: <ClusterOutlined />, label: 'Agent 管理' },
 ]
 
@@ -35,72 +30,57 @@ function useIsMobile() {
 }
 
 function HeaderContent() {
-  const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
 
   const handleMenuClick = useCallback(({ key }: { key: string }) => {
     navigate(key)
-    if (isMobile) setCollapsed(false)
-  }, [isMobile, navigate])
+  }, [navigate])
 
   return (
-    <>
-      <Header style={{
-        background: '#fff',
-        padding: '0 24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
-          <Title level={4} style={{
-            margin: 0, color: '#001529', fontWeight: 600,
-            marginRight: isMobile ? 12 : 32,
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          }}>
-            🐠 AgentFree (Goldfish)
-          </Title>
-          {!isMobile && (
-            <Menu
-              mode="horizontal"
-              selectedKeys={[location.pathname]}
-              items={menuItems}
-              onClick={handleMenuClick}
-              style={{ border: 'none', flex: 1 }}
-            />
-          )}
-        </div>
-        {isMobile && (
-          <Button type="text" icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)} style={{ fontSize: 20, padding: 4 }} />
+    <Header style={{
+      background: '#fff',
+      padding: '0 24px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 1000,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+        <Title level={4} style={{
+          margin: 0, color: '#001529', fontWeight: 600,
+          marginRight: isMobile ? 12 : 32,
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>
+          🐠 AgentFree (Goldfish)
+        </Title>
+        {!isMobile && (
+          <Menu
+            mode="horizontal"
+            selectedKeys={[location.pathname]}
+            items={menuItems}
+            onClick={handleMenuClick}
+            style={{ border: 'none', flex: 1 }}
+          />
         )}
-      </Header>
-      {isMobile && collapsed && (
-        <div style={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', zIndex: 999 }}>
-          <Menu mode="vertical" selectedKeys={[location.pathname]}
-            items={menuItems} onClick={handleMenuClick} style={{ width: '100%' }} />
-        </div>
-      )}
-    </>
+      </div>
+    </div>
   )
 }
 
 export default function App() {
-  const isMobile = useIsMobile()
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <HeaderContent />
-      <Content style={{ padding: isMobile ? 12 : 24, background: '#f0f2f5', minHeight: 280 }}>
+      <Content style={{ padding: 24, background: '#f0f2f5', minHeight: 280 }}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/sessions" element={<Sessions />} />
-          <Route path="/chat/:sessionId" element={<Chat />} />
+          <Route path="/chat" element={<ChatLayout />} />
+          <Route path="/chat/:sessionId" element={<ChatLayout />} />
           <Route path="/agents" element={<Agents />} />
         </Routes>
       </Content>
