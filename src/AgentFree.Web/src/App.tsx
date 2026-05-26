@@ -68,7 +68,7 @@ function HeaderContent() {
           />
         )}
       </div>
-    </div>
+    </Header>
   )
 }
 
