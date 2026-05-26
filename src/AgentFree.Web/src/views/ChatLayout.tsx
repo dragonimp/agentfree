@@ -53,11 +53,17 @@ export default function ChatLayout() {
   const handleCreate = async () => {
     try {
       const values = await form.validateFields()
-      await createSession({ agentId: values.agentId, name: values.name })
+      const res = await createSession({ agentId: values.agentId, name: values.name })
+      const newSession = res.data
       message.success('创建成功')
       setCreateModal(false)
       form.resetFields()
-      fetchData()
+      // 直接跳转到新创建的会话，进入聊天界面
+      if (newSession && newSession.id) {
+        navigate(`/chat/${newSession.id}`)
+      } else {
+        fetchData()
+      }
     } catch (err: any) {
       message.error('创建失败: ' + (err.response?.data?.message || err.message))
     }
@@ -75,7 +81,8 @@ export default function ChatLayout() {
   }
 
   const handleNewChat = () => {
-    navigate('/chat')
+    // 直接打开新建会话对话框
+    setCreateModal(true)
     setCollapsed(false)
   }
 
