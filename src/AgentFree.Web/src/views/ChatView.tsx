@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Card, Input, Button, Typography, Avatar, Spin, message } from 'antd'
-import { SendOutlined, StopOutlined } from '@ant-design/icons'
+import { SendOutlined, StopOutlined, UserOutlined } from '@ant-design/icons'
 import ReactMarkdown from 'react-markdown'
 import { getMessages, streamChat, getSession } from '../api'
 import type { ChatMessage, Session as SessionType } from '../types'

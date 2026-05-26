@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Layout, Menu, Button, Input, Modal, Form, Select, Typography, Drawer, Avatar, Popconfirm, message, theme } from 'antd'
-import { PlusOutlined, DeleteOutlined, MenuFoldOutlined, MenuUnfoldOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, MenuFoldOutlined, MenuUnfoldOutlined, RobotOutlined, UserOutlined, MessageOutlined } from '@ant-design/icons'
 import { getSessions, getAgents, createSession, deleteSession } from '../api'
 import type { Session, Agent } from '../types'
 import ChatView from './ChatView'
