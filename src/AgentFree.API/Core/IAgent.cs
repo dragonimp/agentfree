@@ -41,8 +41,10 @@ public class AgentInfo
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? AgentType { get; set; }
     public string SystemPrompt { get; set; } = string.Empty;
     public ICollection<string> ToolIds { get; set; } = new List<string>();
+    public Dictionary<string, string> ExtraData { get; set; } = new();
 }
 
 /// <summary>

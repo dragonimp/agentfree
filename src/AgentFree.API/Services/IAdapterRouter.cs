@@ -8,10 +8,9 @@ namespace AgentFree.API.Services;
 
 /// <summary>
 /// 适配器路由器 — 根据 Agent 类型路由到对应的 IAdapterService 实现
-/// Goldfish 类型 → GoldfishAdapter（本地 LLM）
+/// Goldfish 类型 → GoldfishAdapter（OpenAI 兼容接口）
 /// Hermes 类型 → HermesAdapter（跨框架通信）
 /// 对话大模型 → DirectLLMAdapter（直接配置原始 LLM）
-/// Openclaw 类型 → OpenclawAdapter（未来扩展）
 /// </summary>
 public interface IAdapterRouter
 {
@@ -70,10 +69,9 @@ public class AdapterRouter : IAdapterRouter
     {
         var desc = adapter.AdapterType switch
         {
-            "Goldfish" => "本地 LLM（Ollama / OpenAI）",
+            "Goldfish" => "OpenAI 兼容接口（直接 LLM 通信）",
             "Hermes" => "Hermes 框架（跨框架通信）",
             "对话大模型" => "直接配置原始大模型",
-            "Openclaw" => "OpenClaw 框架",
             _ => "未知适配器"
         };
         return new AdapterInfo(adapter.AdapterType, adapter.AdapterType, desc);

@@ -53,24 +53,22 @@ namespace AgentFree.API.Controllers
                     {
                         return Ok(new
                         {
-                            provider = agent.LLMProvider ?? "Ollama",
-                            model = agent.LLMModelName ?? "qwen2.5:7b",
-                            baseUrl = (agent.LLMProvider ?? "Ollama") == "OpenAI" ? null : agent.LLMBaseUrl ?? "http://localhost:11434",
-                            models = new[] { agent.LLMModelName ?? "qwen2.5:7b" }
+                            provider = agent.LLMProvider ?? "OpenAI",
+                            model = agent.LLMModelName ?? "gpt-4o",
+                            baseUrl = agent.LLMBaseUrl ?? "https://api.openai.com",
+                            models = new[] { agent.LLMModelName ?? "gpt-4o" }
                         });
                     }
                 }
             }
 
-            var provider = _configuration["LLM:Provider"] ?? "Ollama";
-            var baseUrl = _configuration["LLM:BaseUrl"] ?? "http://localhost:11434";
-            var model = _configuration["LLM:Model"] ?? "qwen2.5:7b";
+            var model = _configuration["LLM:Model"] ?? "gpt-4o";
 
             return Ok(new
             {
-                provider = provider,
+                provider = "OpenAI",
                 model = model,
-                baseUrl = provider == "OpenAI" ? null : baseUrl,
+                baseUrl = "https://api.openai.com",
                 models = new[] { model }
             });
         }

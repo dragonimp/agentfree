@@ -1,0 +1,19 @@
+{
+  "name": "AgentFree",
+  "version": "1.0.0",
+  "buildDate": "2026-05-26T17:15:00.000000",
+  "buildNumber": 1,
+  "description": "自主可控智能体框架 MVP — 整合 Hermes + OpenClaw 特性，支持标准协议",
+  "techStack": [
+    "React 18 + Vite + Ant Design",
+    ".NET 10 API + Entity Framework Core",
+    "PostgreSQL + InMemory Database",
+    "MCP / A2UI / AG-UI / Skills / A2A"
+  ],
+  "features": [
+    "快速启动 — React 18 + Vite + Ant Design 构建管理后台",
+    "Agent 管理 — 全生命周期管理：创建、编辑、删除、启停",
+    "协议支持 — MCP、A2UI、AG-UI、Skills、A2A 等标准协议",
+    "内置工具 — 文件操作、HTTP 请求、终端执行等工具集"
+  ]
+}

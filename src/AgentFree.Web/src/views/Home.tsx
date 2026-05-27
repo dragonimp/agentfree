@@ -54,17 +54,6 @@ export default function Home() {
         </Row>
       </div>
 
-      {/* Quick Links */}
-      <Card style={cardStyle}>
-        <div style={paddingStyle}>
-          <Title level={5} style={{ marginBottom: 16 }}>快速导航</Title>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <a href="/agents" style={{ display: 'inline-block', padding: '8px 20px', background: '#1890ff', color: '#fff', borderRadius: 6, textDecoration: 'none', fontSize: 14 }}>
-              → 进入 Agent 管理
-            </a>
-          </div>
-        </div>
-      </Card>
     </div>
   )
 }

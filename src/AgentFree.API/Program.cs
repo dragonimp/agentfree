@@ -53,24 +53,19 @@ else
 
 // ==================== Core Engine Services ====================
 
-// IChatClient - 支持 OpenAI 和 Ollama
+// IChatClient - OpenAI 兼容接口
 builder.Services.AddSingleton<IChatClient>(sp =>
 {
-    var llmProvider = builder.Configuration["LLM:Provider"] ?? "Ollama";
-    var llmBaseUrl = builder.Configuration["LLM:BaseUrl"] ?? "http://localhost:11434";
-    var llmModel = builder.Configuration["LLM:Model"] ?? "qwen2.5:7b";
-    var openaiApiKey = builder.Configuration["LLM:OpenAIKey"];
+    var baseUrl = builder.Configuration["LLM:BaseUrl"] ?? "https://api.openai.com";
+    var model = builder.Configuration["LLM:Model"] ?? "gpt-4o";
+    var apiKey = builder.Configuration["LLM:OpenAIKey"] ?? string.Empty;
 
-    if (llmProvider == "OpenAI" && !string.IsNullOrEmpty(openaiApiKey))
+    var options = new OpenAIClientOptions
     {
-        // OpenAI provider
-        var openaiClient = new OpenAIClient(openaiApiKey);
-        return openaiClient.AsChatClient(llmModel);
-    }
-
-    // Ollama provider (default)
-    var ollamaClient = new OllamaChatClient(llmBaseUrl, llmModel);
-    return ollamaClient;
+        Endpoint = new Uri(baseUrl)
+    };
+    var openaiClient = new OpenAIClient(apiKey, options);
+    return openaiClient.GetChatClient(model).AsIChatClient();
 });
 
 // IToolRegistry

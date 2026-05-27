@@ -9,6 +9,8 @@ export interface Agent {
   status: 'Active' | 'Inactive' | 'Error'
   createdAt: string
   updatedAt: string
+  apiServerIp?: string
+  apiServerPort?: string
 }
 
 export interface Adapter {
@@ -61,4 +63,14 @@ export interface SendMessageParams {
   role: string
   content: string
   toolCallId?: string
+}
+
+export interface VersionInfo {
+  name: string
+  version: string
+  buildDate: string
+  buildNumber: number
+  description: string
+  techStack: string[]
+  features: string[]
 }

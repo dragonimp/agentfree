@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Layout, Menu, Button, Input, Modal, Form, Select, Typography, Drawer, Avatar, Popconfirm, message, theme } from 'antd'
-import { PlusOutlined, DeleteOutlined, MenuFoldOutlined, MenuUnfoldOutlined, RobotOutlined, UserOutlined, MessageOutlined } from '@ant-design/icons'
+import { Layout, Menu, Button, Input, Modal, Form, Select, Typography, Drawer, Avatar, Popconfirm, message, theme, Tooltip } from 'antd'
+import { PlusOutlined, DeleteOutlined, MenuFoldOutlined, MenuUnfoldOutlined, RobotOutlined, UserOutlined, MessageOutlined, RightOutlined, KeyOutlined } from '@ant-design/icons'
 import { getSessions, getAgents, createSession, deleteSession } from '../api'
 import type { Session, Agent } from '../types'
+import { Space, Tag } from 'antd'
 import ChatView from './ChatView'
 
 const { Sider, Content } = Layout
@@ -198,7 +199,30 @@ export default function ChatLayout() {
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
           <div style={{ width: '100%', maxWidth: 860, height: '100%', display: 'flex', flexDirection: 'column' }}>
             {currentSessionId ? (
-              <ChatView sessionId={currentSessionId} />
+              <>
+                {/* Session Header */}
+                <div style={{
+                  padding: '10px 20px',
+                  background: '#fff',
+                  borderBottom: '1px solid #f0f0f0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexShrink: 0,
+                }}>
+                  <Space direction="vertical" size={2} style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
+                      {sessions.find(s => s.id === currentSessionId)?.agentName || sessions.find(s => s.id === currentSessionId)?.name || '会话'}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#999' }}>
+                      <Tag icon={<KeyOutlined />} style={{ fontSize: 11 }}>
+                        ID: {currentSessionId.substring(0, 8)}...
+                      </Tag>
+                    </div>
+                  </Space>
+                </div>
+                <ChatView sessionId={currentSessionId} />
+              </>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', color: '#bbb' }}>
                 <div style={{ fontSize: 64, marginBottom: 16 }}>🐠</div>
