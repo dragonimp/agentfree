@@ -1,37 +1,52 @@
-# ============ .gitignore for AgentFree ============
-
-# ============ .NET ============
-bin/
-obj/
-publish/
+# Build outputs
+dist/
+build/
+*.dll
+*.exe
+*.pdb
 *.user
 *.suo
 *.cache
 *.log
+*.nupkg
+*.snupkg
+*.microsoft.ai.*
 
-# ============ Node.js ============
-src/AgentFree.Web/node_modules/
-src/AgentFree.Web/dist/
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
 
-# ============ IDE ============
+# IDE
 .vs/
 .vscode/
-*.csproj.user
-
-# ============ OS ============
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
+
+# Runtime
+logs/
+*.log
+runtime/
+
+# Test outputs
+TestResults/
+Coverage/
+*. cobertura.xml
+
+# OS
 Thumbs.db
 
-# ============ Secrets ============
-appsettings.Development.json
-*.key
-*.pem
+# API Server config (contains secrets)
+src/AgentFree.API/appsettings.Development.json
+src/AgentFree.API/Services/api-keys.json
 
 # Secrets
-.env
-appsettings.json
+*.secret
+*.pem
+*.key
