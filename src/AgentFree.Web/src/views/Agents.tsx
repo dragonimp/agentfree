@@ -133,7 +133,17 @@ export default function Agents() {
         <Button
           type="primary"
           icon={<PlusOutlined />}
-          onClick={() => { form.resetFields(); setEditingAgent(null); setModalVisible(true) }}
+          onClick={() => {
+            form.resetFields()
+            setEditingAgent(null)
+            form.setFieldsValue({
+              agentType: 'Goldfish',
+              hermesBaseUrl: '100.100.59.18',
+              hermesPort: '18788',
+              hermesKey: '',
+            })
+            setModalVisible(true)
+          }}
           style={{ borderRadius: 8, height: 40, fontSize: 15 }}
         >
           新增智能体

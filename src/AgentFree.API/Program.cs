@@ -64,7 +64,7 @@ builder.Services.AddSingleton<IChatClient>(sp =>
     {
         Endpoint = new Uri(baseUrl)
     };
-    var openaiClient = new OpenAIClient(apiKey, options);
+    var openaiClient = new OpenAIClient(new System.ClientModel.ApiKeyCredential(apiKey), options);
     return openaiClient.GetChatClient(model).AsIChatClient();
 });
 

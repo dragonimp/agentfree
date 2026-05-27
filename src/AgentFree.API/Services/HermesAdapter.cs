@@ -42,8 +42,17 @@ public class HermesAdapter : IAdapterService
         string userMessage,
         CancellationToken ct = default)
     {
-        var hermesBaseUrl = _configuration["Hermes:BaseUrl"] ?? "http://localhost:5200";
+        // 优先从 agentInfo.ExtraData 读取，其次从配置读取
+        var hermesBaseUrl = agentInfo?.ExtraData.GetValueOrDefault("HermesBaseUrl")
+            ?? _configuration["Hermes:BaseUrl"] ?? "http://localhost:5200";
+        var hermesApiKey = agentInfo?.ExtraData.GetValueOrDefault("HermesApiKey");
         _httpClient.BaseAddress = new Uri(hermesBaseUrl);
+        // 设置 API Key 头
+        if (!string.IsNullOrEmpty(hermesApiKey))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", hermesApiKey);
+        }
 
         // 加载历史
         var history = await GetHistoryAsync(sessionId);
@@ -118,8 +127,17 @@ public class HermesAdapter : IAdapterService
         string userMessage,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
     {
-        var hermesBaseUrl = _configuration["Hermes:BaseUrl"] ?? "http://localhost:5200";
+        // 优先从 agentInfo.ExtraData 读取，其次从配置读取
+        var hermesBaseUrl = agentInfo?.ExtraData.GetValueOrDefault("HermesBaseUrl")
+            ?? _configuration["Hermes:BaseUrl"] ?? "http://localhost:5200";
+        var hermesApiKey = agentInfo?.ExtraData.GetValueOrDefault("HermesApiKey");
         _httpClient.BaseAddress = new Uri(hermesBaseUrl);
+        // 设置 API Key 头
+        if (!string.IsNullOrEmpty(hermesApiKey))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", hermesApiKey);
+        }
 
         // 保存用户消息
         _context.Messages.Add(new Message { SessionId = sessionId, Role = "user", Content = userMessage, CreatedAt = DateTime.UtcNow });
