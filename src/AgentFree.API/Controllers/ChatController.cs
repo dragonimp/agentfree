@@ -109,6 +109,11 @@ namespace AgentFree.API.Controllers
                         agentInfo.ExtraData["LLMModelName"] = agent.LLMModelName;
                     if (!string.IsNullOrEmpty(agent.LLMApiKey))
                         agentInfo.ExtraData["LLMApiKey"] = agent.LLMApiKey;
+                    // 填充 ExtraData（Hermes 网关配置）
+                    if (!string.IsNullOrEmpty(agent.ServiceUrl))
+                        agentInfo.ExtraData["HermesBaseUrl"] = agent.ServiceUrl;
+                    if (!string.IsNullOrEmpty(agent.Token))
+                        agentInfo.ExtraData["HermesApiKey"] = agent.Token;
                 }
             }
 

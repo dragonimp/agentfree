@@ -79,6 +79,18 @@ export default function Agents() {
     }
   }
 
+  // 编辑时预填 Hermes 配置
+  const handleEdit = (agent: Agent) => {
+    setEditingAgent(agent)
+    const hermesValues: Record<string, any> = {
+      hermesBaseUrl: agent.serviceUrl?.split(':')[0]?.replace('http://', '').replace('https://', '') || '100.100.59.18',
+      hermesPort: agent.serviceUrl?.split(':')[1] || '18788',
+      hermesKey: agent.token || '',
+    }
+    form.setFieldsValue({ ...agent, ...hermesValues })
+    setModalVisible(true)
+  }
+
   const handleDelete = async (id: number) => {
     try {
       await deleteAgent(id)
@@ -245,9 +257,7 @@ export default function Agents() {
                     <Space size={4}>
                       <Button type="text" size="small" icon={<EditOutlined />} onClick={(e) => {
                         e.stopPropagation()
-                        setEditingAgent(agent)
-                        form.setFieldsValue(agent)
-                        setModalVisible(true)
+                        handleEdit(agent)
                       }} style={{ borderRadius: 8 }} />
                       {agent.status === 'Active' ? (
                         <Popconfirm title="停止此智能体？" onConfirm={(e) => { e?.stopPropagation(); handleStatus(agent, 'Inactive') }}>
@@ -392,7 +402,7 @@ export default function Agents() {
             </div>
 
             <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
-              <Button type="primary" icon={<EditOutlined />} block onClick={() => { setEditingAgent(detailAgent); setDrawerVisible(false); setModalVisible(true); form.setFieldsValue(detailAgent) }} style={{ borderRadius: 8 }}>
+              <Button type="primary" icon={<EditOutlined />} block onClick={() => { setDrawerVisible(false); setModalVisible(true); handleEdit(detailAgent) }} style={{ borderRadius: 8 }}>
                 编辑智能体
               </Button>
               <Popconfirm title="确定删除此智能体？" onConfirm={() => handleDelete(detailAgent.id)}>
