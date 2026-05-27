@@ -13,8 +13,8 @@ namespace AgentFree.API.Models
         public string Status { get; set; } = "Inactive";
         
         // 对话大模型类型专用字段
-        public string? LLMProvider { get; set; }       // OpenAI, Ollama, Azure 等
-        public string? LLMBaseUrl { get; set; }          // API 地址
+        public string? LLMProvider { get; set; }       // OpenAI, Azure 等外部 LLM 提供商
+        public string? LLMBaseUrl { get; set; }          // OpenAI 兼容 API 地址
         public string? LLMModelName { get; set; }         // 模型名称
         public string? LLMApiKey { get; set; }            // API 密钥
         

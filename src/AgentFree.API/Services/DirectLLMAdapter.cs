@@ -4,8 +4,9 @@ using AgentFree.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using MsChatMessage = Microsoft.Extensions.AI.ChatMessage;
+using OpenAI;
 using CoreChatMessage = AgentFree.API.Core.ChatMessage;
+using MsChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace AgentFree.API.Services;
 
@@ -30,39 +31,30 @@ public class DirectLLMAdapter : IAdapterService
     }
 
     /// <summary>
-    /// 创建 ChatClient — 根据配置动态创建
+    /// 创建 IChatClient — 基于 OpenAI 兼容接口
     /// </summary>
-    private ChatClient CreateChatClient(string provider, string baseUrl, string modelName, string? apiKey)
+    private IChatClient CreateChatClient(AgentInfo? agentInfo)
     {
-        return provider?.ToLowerInvariant() switch
+        // 从 Agent 的 ExtraData 字典中读取配置
+        var extraData = agentInfo?.ExtraData as Dictionary<string, string> ?? new Dictionary<string, string>();
+        var llmBaseUrl = extraData.GetValueOrDefault("LLMBaseUrl") ?? "https://api.openai.com";
+        var llmModel = extraData.GetValueOrDefault("LLMModelName") ?? "gpt-4o";
+        var llmApiKey = extraData.GetValueOrDefault("LLMApiKey") ?? string.Empty;
+
+        _logger.LogInformation("DirectLLM 适配器: Model={Model}, BaseUrl={BaseUrl}",
+            llmModel, llmBaseUrl);
+
+        return CreateOpenAIClient(llmBaseUrl, llmModel, llmApiKey);
+    }
+
+    private IChatClient CreateOpenAIClient(string baseUrl, string modelName, string? apiKey)
+    {
+        var options = new OpenAIClientOptions
         {
-            "openai" => CreateOpenAIClient(baseUrl, modelName, apiKey),
-            "ollama" => CreateOllamaClient(baseUrl, modelName),
-            "azure"  => CreateAzureClient(baseUrl, modelName, apiKey),
-            _ => CreateOpenAIClient(baseUrl, modelName, apiKey) // 默认 OpenAI 兼容
+            Endpoint = new Uri(baseUrl)
         };
-    }
-
-    private ChatClient CreateOpenAIClient(string? baseUrl, string modelName, string? apiKey)
-    {
-        var openaiClient = new OpenAIClient(
-            apiKey ?? "",
-            new OpenAIClientOptions { Endpoint = string.IsNullOrEmpty(baseUrl) ? null : new Uri(baseUrl) });
-        return openaiClient.AsChatClient(modelName);
-    }
-
-    private ChatClient CreateOllamaClient(string? baseUrl, string modelName)
-    {
-        var url = string.IsNullOrEmpty(baseUrl) ? "http://localhost:11434" : baseUrl;
-        return new OllamaChatClient(url, modelName);
-    }
-
-    private ChatClient CreateAzureClient(string? baseUrl, string modelName, string? apiKey)
-    {
-        // Azure OpenAI 使用 OpenAI 兼容模式
-        var openaiClient = new OpenAIClient(apiKey ?? "",
-            new OpenAIClientOptions { Endpoint = string.IsNullOrEmpty(baseUrl) ? null : new Uri(baseUrl) });
-        return openaiClient.AsChatClient(modelName);
+        var openaiClient = new OpenAIClient(apiKey ?? "", options);
+        return openaiClient.GetChatClient(modelName).AsIChatClient();
     }
 
     /// <summary>
@@ -74,14 +66,7 @@ public class DirectLLMAdapter : IAdapterService
         string userMessage,
         CancellationToken ct = default)
     {
-        var llmProvider = agentInfo?.ExtraData?.GetValueOrDefault("LLMProvider") ?? "Ollama";
-        var llmBaseUrl = agentInfo?.ExtraData?.GetValueOrDefault("LLMBaseUrl") ?? "http://localhost:11434";
-        var llmModel = agentInfo?.ExtraData?.GetValueOrDefault("LLMModelName") ?? "qwen2.5:7b";
-        var llmApiKey = agentInfo?.ExtraData?.GetValueOrDefault("LLMApiKey");
-
-        _logger.LogInformation("DirectLLM 适配器调用: Provider={Provider}, Model={Model}", llmProvider, llmModel);
-
-        using var chatClient = CreateChatClient(llmProvider, llmBaseUrl, llmModel, llmApiKey);
+        using var chatClient = CreateChatClient(agentInfo);
 
         var history = await GetHistoryAsync(sessionId);
         var msMessages = ConvertToMsMessages(history);
@@ -116,18 +101,11 @@ public class DirectLLMAdapter : IAdapterService
         string userMessage,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
     {
-        var llmProvider = agentInfo?.ExtraData?.GetValueOrDefault("LLMProvider") ?? "Ollama";
-        var llmBaseUrl = agentInfo?.ExtraData?.GetValueOrDefault("LLMBaseUrl") ?? "http://localhost:11434";
-        var llmModel = agentInfo?.ExtraData?.GetValueOrDefault("LLMModelName") ?? "qwen2.5:7b";
-        var llmApiKey = agentInfo?.ExtraData?.GetValueOrDefault("LLMApiKey");
-
-        _logger.LogInformation("DirectLLM 适配器流式调用: Provider={Provider}, Model={Model}", llmProvider, llmModel);
+        using var chatClient = CreateChatClient(agentInfo);
 
         // 保存用户消息
         _context.Messages.Add(new Message { SessionId = sessionId, Role = "user", Content = userMessage, CreatedAt = DateTime.UtcNow });
         await _context.SaveChangesAsync(ct);
-
-        using var chatClient = CreateChatClient(llmProvider, llmBaseUrl, llmModel, llmApiKey);
 
         var history = await GetHistoryAsync(sessionId);
         var msMessages = ConvertToMsMessages(history);
@@ -163,11 +141,11 @@ public class DirectLLMAdapter : IAdapterService
             .OrderBy(m => m.CreatedAt)
             .ToListAsync();
 
-        return msgs.Select(m => new CoreChatMessage 
-        { 
-            Role = m.Role, 
-            Content = m.Content, 
-            CreatedAt = m.CreatedAt 
+        return msgs.Select(m => new CoreChatMessage
+        {
+            Role = m.Role,
+            Content = m.Content,
+            CreatedAt = m.CreatedAt
         }).ToList();
     }
 

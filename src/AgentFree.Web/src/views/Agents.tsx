@@ -56,6 +56,13 @@ export default function Agents() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields()
+      // Hermes 类型: 组合 serviceUrl + port, token = hermesKey
+      if (values.agentType === 'Hermes') {
+        const baseUrl = (values.hermesBaseUrl || '').replace(/\/$/, '')
+        const port = values.hermesPort
+        values.serviceUrl = port ? `${baseUrl}:${port}` : baseUrl
+        values.token = values.hermesKey
+      }
       if (editingAgent) {
         await updateAgent(editingAgent.id, values)
         message.success('更新成功')
@@ -281,30 +288,66 @@ export default function Agents() {
           <Form.Item name="description" label="描述">
             <Input.TextArea rows={2} placeholder="描述这个智能体的功能" />
           </Form.Item>
-          {/* 智能体类型 + 服务地址 + 智能体ID + TOKEN 紧凑分组 */}
-          <Row gutter={12}>
-            <Col span={8}>
-              <Form.Item name="agentType" label="智能体类型" rules={[{ required: true, message: '请选择类型' }]} initialValue="Goldfish" style={{ marginBottom: 0 }}>
-                <Select options={agentTypeOptions} />
+          {/* 智能体类型 */}
+          <Form.Item name="agentType" label="智能体类型" rules={[{ required: true, message: '请选择类型' }]} initialValue="Goldfish">
+            <Select options={agentTypeOptions} />
+          </Form.Item>
+          
+          {/* 服务地址 - 独立一行 */}
+          <Form.Item name="serviceUrl" label="服务地址">
+            <Input placeholder="http://127.0.0.1:5101" />
+          </Form.Item>
+          
+          {/* 智能体ID */}
+          <Form.Item name="agentId" label="智能体ID">
+            <Input placeholder="唯一标识" />
+          </Form.Item>
+          
+          {/* TOKEN */}
+          <Form.Item name="token" label="TOKEN">
+            <Input.Password placeholder="认证 Token" />
+          </Form.Item>
+          
+          {/* API Server 地址 */}
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="apiServerIp" label="API Server IP">
+                <Input placeholder="192.168.1.100" />
               </Form.Item>
             </Col>
-            <Col span={8}>
-              <Form.Item name="serviceUrl" label="服务地址" style={{ marginBottom: 0 }}>
-                <Input placeholder="http://127.0.0.1:5101" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item name="agentId" label="智能体ID" style={{ marginBottom: 0 }}>
-                <Input placeholder="唯一标识" />
+            <Col span={12}>
+              <Form.Item name="apiServerPort" label="API Server 端口">
+                <Input placeholder="5100" />
               </Form.Item>
             </Col>
           </Row>
-          <Form.Item name="token" label="TOKEN" style={{ marginBottom: 0 }}>
-            <Input.Password placeholder="认证 Token" />
-          </Form.Item>
-          <Form.Item name="status" label="状态" initialValue="Inactive" style={{ marginBottom: 0 }}>
+          
+          {/* 状态 */}
+          <Form.Item name="status" label="状态" initialValue="Inactive">
             <Select options={[{ value: 'Active', label: 'Active (运行中)' }, { value: 'Inactive', label: 'Inactive (已停止)' }]} />
           </Form.Item>
+          
+          {/* Hermes 专用配置 */}
+          {form.getFieldValue('agentType') === 'Hermes' && (
+            <div style={{ background: '#f9f0ff', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+              <Text style={{ fontWeight: 600, fontSize: 13, color: '#722ed1' }}>🔗 Hermes 网关配置</Text>
+              <Form.Item name="hermesBaseUrl" label="Tailscale 地址" style={{ marginBottom: 4, marginTop: 8 }}>
+                <Input prefix="http://" placeholder="100.100.59.18" />
+              </Form.Item>
+              <Row gutter={12}>
+                <Col span={12}>
+                  <Form.Item name="hermesPort" label="端口" style={{ marginBottom: 4 }}>
+                    <Input placeholder="18788" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item name="hermesKey" label="API Key" style={{ marginBottom: 4 }}>
+                    <Input.Password placeholder="hermes-local-key" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </div>
+          )}
         </Form>
       </Modal>
 

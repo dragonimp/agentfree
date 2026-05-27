@@ -10,8 +10,8 @@ using Microsoft.Extensions.Logging;
 namespace AgentFree.API.Services;
 
 /// <summary>
-/// Goldfish 适配器 — 对接本地 LLM（Ollama / OpenAI）
-/// 这是默认的适配器实现，通过 IChatClient 直接与 LLM 通信
+/// Goldfish 适配器 — 对接外部 LLM（OpenAI 兼容接口）
+/// 通过 IChatClient 直接与 LLM 通信
 /// </summary>
 public class GoldfishAdapter : IAdapterService
 {

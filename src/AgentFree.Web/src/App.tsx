@@ -5,10 +5,12 @@ import {
   HomeOutlined,
   ClusterOutlined,
   MessageOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons'
 import Home from './views/Home'
 import Agents from './views/Agents'
 import ChatLayout from './views/ChatLayout'
+import About from './views/About'
 
 const { Header, Content, Footer } = Layout
 const { Title } = Typography
@@ -17,6 +19,7 @@ const menuItems = [
   { key: '/', icon: <HomeOutlined />, label: '首页' },
   { key: '/chat', icon: <MessageOutlined />, label: '聊天' },
   { key: '/agents', icon: <ClusterOutlined />, label: '管理' },
+  { key: '/about', icon: <InfoCircleOutlined />, label: '关于' },
 ]
 
 function useIsMobile() {
@@ -81,6 +84,7 @@ function MobileBottomNav() {
     { key: '/', icon: <HomeOutlined />, label: '首页' },
     { key: '/chat', icon: <MessageOutlined />, label: '聊天' },
     { key: '/agents', icon: <ClusterOutlined />, label: '管理' },
+    { key: '/about', icon: <InfoCircleOutlined />, label: '关于' },
   ]
 
   return (
@@ -141,6 +145,7 @@ export default function App() {
           <Route path="/chat" element={<ChatLayout />} />
           <Route path="/chat/:sessionId" element={<ChatLayout />} />
           <Route path="/agents" element={<Agents />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </Content>
       {isMobile && <MobileBottomNav />}
