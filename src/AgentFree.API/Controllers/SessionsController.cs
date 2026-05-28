@@ -20,11 +20,22 @@ namespace AgentFree.API.Controllers
 
         // GET /api/sessions - 获取所有会话
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Session>>> GetSessions()
+        public async Task<ActionResult<IEnumerable<object>>> GetSessions()
         {
-            return await _context.Sessions
+            var sessions = await _context.Sessions
+                .Include(s => s.Agent)
                 .OrderByDescending(s => s.UpdatedAt)
                 .ToListAsync();
+
+            return sessions.Select(s => new
+            {
+                s.Id,
+                s.AgentId,
+                AgentName = s.Agent != null ? s.Agent.Name : "未知智能体",
+                s.Name,
+                s.CreatedAt,
+                s.UpdatedAt
+            }).ToList();
         }
 
         // GET /api/sessions/{id} - 获取单个会话
