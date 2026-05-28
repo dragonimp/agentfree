@@ -96,13 +96,26 @@ namespace AgentFree.API.Controllers
                         AgentType = agent.AgentType,
                         SystemPrompt = agent.Description
                     };
-                    // 填充 ExtraData（统一配置）
-                    if (!string.IsNullOrEmpty(agent.BaseUrl))
-                        agentInfo.ExtraData["BaseUrl"] = agent.BaseUrl;
-                    if (!string.IsNullOrEmpty(agent.ApiKey))
-                        agentInfo.ExtraData["ApiKey"] = agent.ApiKey;
-                    if (!string.IsNullOrEmpty(agent.AgentId))
-                        agentInfo.ExtraData["AgentId"] = agent.AgentId;
+
+                    // 根据 AgentType 设置适配器专用配置
+                    if (agent.AgentType == "Hermes")
+                    {
+                        // Hermes 适配器需要 HermesBaseUrl/HermesApiKey
+                        if (!string.IsNullOrEmpty(agent.BaseUrl))
+                            agentInfo.ExtraData["HermesBaseUrl"] = agent.BaseUrl;
+                        if (!string.IsNullOrEmpty(agent.ApiKey))
+                            agentInfo.ExtraData["HermesApiKey"] = agent.ApiKey;
+                    }
+                    else
+                    {
+                        // Goldfish / Openclaw / 其他类型使用统一配置
+                        if (!string.IsNullOrEmpty(agent.BaseUrl))
+                            agentInfo.ExtraData["BaseUrl"] = agent.BaseUrl;
+                        if (!string.IsNullOrEmpty(agent.ApiKey))
+                            agentInfo.ExtraData["ApiKey"] = agent.ApiKey;
+                        if (!string.IsNullOrEmpty(agent.AgentId))
+                            agentInfo.ExtraData["ModelAgent"] = agent.AgentId;
+                    }
                 }
             }
 
