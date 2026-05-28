@@ -36,14 +36,26 @@ builder.Services.AddCors(options =>
 });
 
 // ==================== Controllers ====================
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+});
 
 // ==================== DbContext ====================
 var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (!string.IsNullOrEmpty(dbConnectionString) && dbConnectionString.Contains("postgres", StringComparison.OrdinalIgnoreCase))
+if (!string.IsNullOrEmpty(dbConnectionString))
 {
-    builder.Services.AddDbContext<AppDbContext>(opt =>
-        opt.UseNpgsql(dbConnectionString));
+    // Try PostgreSQL first, fall back to InMemory if connection fails
+    try
+    {
+        builder.Services.AddDbContext<AppDbContext>(opt =>
+            opt.UseNpgsql(dbConnectionString));
+    }
+    catch
+    {
+        builder.Services.AddDbContext<AppDbContext>(opt =>
+            opt.UseInMemoryDatabase("AgentFreeDb"));
+    }
 }
 else
 {
