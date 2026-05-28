@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Layout, Menu, Button, Input, Modal, Form, Select, Typography, Drawer, Avatar, Popconfirm, message, theme, Tooltip } from 'antd'
-import { PlusOutlined, DeleteOutlined, MenuFoldOutlined, MenuUnfoldOutlined, RobotOutlined, UserOutlined, MessageOutlined, RightOutlined, KeyOutlined } from '@ant-design/icons'
+import { PlusOutlined, DeleteOutlined, MenuFoldOutlined, MenuUnfoldOutlined, RobotOutlined, UserOutlined, RightOutlined, KeyOutlined } from '@ant-design/icons'
 import { getSessions, getAgents, createSession, deleteSession } from '../api'
 import type { Session, Agent } from '../types'
 import { Space, Tag } from 'antd'
@@ -25,6 +25,16 @@ export default function ChatLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const currentSessionId = location.pathname.split('/chat/')[1]
+
+  // 当前会话及其关联智能体信息
+  const currentSession = useMemo(
+    () => sessions.find((s) => s.id === currentSessionId) || null,
+    [sessions, currentSessionId],
+  )
+  const currentAgent = useMemo(
+    () => agents.find((a) => a.id === currentSession?.agentId) || null,
+    [agents, currentSession?.agentId],
+  )
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth <= 768)
@@ -50,6 +60,25 @@ export default function ChatLayout() {
   }
 
   useEffect(() => { fetchData() }, [])
+
+  // 按智能体名称分组会话
+  const groupedSessions = useMemo(() => {
+    const groups: Record<string, Session[]> = {}
+    for (const session of sessions) {
+      const agentName = session.agentName || '未分类'
+      if (!groups[agentName]) groups[agentName] = []
+      groups[agentName].push(session)
+    }
+    // 按智能体名称排序，组内会话按更新时间倒序
+    return Object.entries(groups)
+      .sort(([a], [b]) => a.localeCompare(b, 'zh-CN'))
+      .map(([agentName, groupSessions]) => ({
+        agentName,
+        sessions: groupSessions.sort(
+          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        ),
+      }))
+  }, [sessions])
 
   const handleCreate = async () => {
     try {
@@ -85,19 +114,6 @@ export default function ChatLayout() {
     setCollapsed(false)
   }
 
-  const menuItems = sessions.map(s => ({
-    key: s.id,
-    icon: <MessageOutlined style={{ fontSize: 14 }} />,
-    label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: 0 }}>
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, fontSize: 13 }}>{s.name}</span>
-        <Popconfirm title="删除此会话？" onConfirm={() => handleDelete(s.id)} okText="确定" cancelText="取消">
-          <DeleteOutlined style={{ color: '#bbb', fontSize: 13, flexShrink: 0, marginLeft: 4 }} />
-        </Popconfirm>
-      </div>
-    ),
-  }))
-
   const siderContent = (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '16px 16px 8px' }}>
@@ -115,8 +131,27 @@ export default function ChatLayout() {
           <Menu
             mode="inline"
             selectedKeys={currentSessionId ? [currentSessionId] : []}
-            items={menuItems}
-            onClick={({ key }) => { navigate(`/chat/${key}`); setCollapsed(false) }}
+            items={groupedSessions.map(group => ({
+              key: group.agentName,
+              label: <span style={{ fontWeight: 600 }}>{group.agentName}</span>,
+              icon: <RobotOutlined style={{ fontSize: 14 }} />,
+              children: group.sessions.map(s => ({
+                key: s.id,
+                label: (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: 0 }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, fontSize: 13 }}>{s.name}</span>
+                    <Popconfirm title="删除此会话？" onConfirm={() => handleDelete(s.id)} okText="确定" cancelText="取消">
+                      <DeleteOutlined style={{ color: '#bbb', fontSize: 13, flexShrink: 0, marginLeft: 4 }} />
+                    </Popconfirm>
+                  </div>
+                ),
+              })),
+            }))}
+            onClick={({ key }) => {
+              if (key.startsWith('group-')) return
+              navigate(`/chat/${key}`)
+              setCollapsed(false)
+            }}
             style={{ borderRight: 0 }}
           />
         )}
@@ -143,9 +178,26 @@ export default function ChatLayout() {
             {/* Mobile header bar */}
             <div style={{ background: '#fff', padding: '10px 12px', display: 'flex', alignItems: 'center', borderBottom: '1px solid #f0f0f0', flexShrink: 0 }}>
               <Button type="text" icon={<MenuFoldOutlined />} onClick={() => setDrawerOpen(true)} style={{ marginRight: 8 }} />
-              <Title level={5} style={{ margin: 0, flex: 1, fontSize: 15 }}>
-                {currentSessionId ? sessions.find(s => s.id === currentSessionId)?.name || '聊天' : 'AgentFree'}
-              </Title>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#333', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {currentSession?.name || 'AgentFree'}
+                </div>
+                <div style={{ fontSize: 11, color: '#999', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <RobotOutlined style={{ marginRight: 4, color: '#1677ff' }} />
+                  {currentSession?.agentName || '未命名智能体'}
+                  {currentAgent?.agentType && (
+                    <span style={{ marginLeft: 4 }}>
+                      <Tag color={
+                        currentAgent.agentType === 'Hermes' ? 'green' :
+                        currentAgent.agentType === 'Goldfish' ? 'orange' :
+                        'blue'
+                      } style={{ fontSize: 10, padding: '0 6px', margin: 0, height: 18, lineHeight: '18px' }}>
+                        {currentAgent.agentType}
+                      </Tag>
+                    </span>
+                  )}
+                </div>
+              </div>
               <Button type="text" icon={<PlusOutlined />} onClick={handleNewChat} style={{ marginLeft: 8 }} />
             </div>
             {/* Chat area fills remaining space */}
@@ -212,13 +264,26 @@ export default function ChatLayout() {
                 }}>
                   <Space direction="vertical" size={2} style={{ flex: 1 }}>
                     <div style={{ fontSize: 15, fontWeight: 600, color: '#333' }}>
-                      {sessions.find(s => s.id === currentSessionId)?.agentName || sessions.find(s => s.id === currentSessionId)?.name || '会话'}
+                      {currentSession?.name || '会话'}
                     </div>
-                    <div style={{ fontSize: 12, color: '#999' }}>
-                      <Tag icon={<KeyOutlined />} style={{ fontSize: 11 }}>
-                        ID: {currentSessionId.substring(0, 8)}...
-                      </Tag>
-                    </div>
+                    <Space size={6} wrap>
+                      <span style={{ fontSize: 12, color: '#666' }}>
+                        <RobotOutlined style={{ marginRight: 4, color: '#1677ff' }} />
+                        {currentSession?.agentName || '未命名智能体'}
+                      </span>
+                      {currentAgent?.agentType && (
+                        <Tag
+                          color={
+                            currentAgent.agentType === 'Hermes' ? 'green' :
+                            currentAgent.agentType === 'Goldfish' ? 'orange' :
+                            'blue'
+                          }
+                          style={{ fontSize: 11, margin: 0 }}
+                        >
+                          {currentAgent.agentType}
+                        </Tag>
+                      )}
+                    </Space>
                   </Space>
                 </div>
                 <ChatView sessionId={currentSessionId} />
