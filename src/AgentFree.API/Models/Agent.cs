@@ -5,19 +5,14 @@ namespace AgentFree.API.Models
         public int Id { get; set; }
         public required string Name { get; set; }
         public string? Description { get; set; }
-        public string? SystemPrompt { get; set; }
-        public string AgentType { get; set; } = "Goldfish";
-        public string? ServiceUrl { get; set; }
-        public string? AgentId { get; set; }
-        public string? Token { get; set; }
+        
+        // 四个核心参数
+        public string? AgentId { get; set; }        // 智能体ID（用户自定义唯一标识）
+        public required string AgentType { get; set; } = "Goldfish"; // 智能体类型
+        public required string BaseUrl { get; set; }
+        public string? ApiKey { get; set; }
+        
         public string Status { get; set; } = "Inactive";
-        
-        // 对话大模型类型专用字段
-        public string? LLMProvider { get; set; }       // OpenAI, Azure 等外部 LLM 提供商
-        public string? LLMBaseUrl { get; set; }          // OpenAI 兼容 API 地址
-        public string? LLMModelName { get; set; }         // 模型名称
-        public string? LLMApiKey { get; set; }            // API 密钥
-        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
@@ -26,34 +21,19 @@ namespace AgentFree.API.Models
     {
         public required string Name { get; set; }
         public string? Description { get; set; }
-        public string? SystemPrompt { get; set; }
-        public string AgentType { get; set; } = "Goldfish";
-        public string? ServiceUrl { get; set; }
         public string? AgentId { get; set; }
-        public string? Token { get; set; }
-        
-        // 对话大模型类型专用字段
-        public string? LLMProvider { get; set; }
-        public string? LLMBaseUrl { get; set; }
-        public string? LLMModelName { get; set; }
-        public string? LLMApiKey { get; set; }
+        public required string AgentType { get; set; }
+        public required string BaseUrl { get; set; }
+        public string? ApiKey { get; set; }
     }
 
     public class UpdateAgentDto
     {
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public string? SystemPrompt { get; set; }
-        public string? AgentType { get; set; }
-        public string? ServiceUrl { get; set; }
         public string? AgentId { get; set; }
-        public string? Token { get; set; }
-        public string? Status { get; set; }
-        
-        // 对话大模型类型专用字段
-        public string? LLMProvider { get; set; }
-        public string? LLMBaseUrl { get; set; }
-        public string? LLMModelName { get; set; }
-        public string? LLMApiKey { get; set; }
+        public string? AgentType { get; set; }
+        public string? BaseUrl { get; set; }
+        public string? ApiKey { get; set; }
     }
 }

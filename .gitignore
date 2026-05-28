@@ -1,6 +1,9 @@
 # Build outputs
 dist/
 build/
+bin/
+obj/
+publish/
 *.dll
 *.exe
 *.pdb
@@ -17,8 +20,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
-yarn.lock
 
 # IDE
 .vs/
@@ -37,12 +38,13 @@ runtime/
 # Test outputs
 TestResults/
 Coverage/
-*. cobertura.xml
+*.cobertura.xml
 
 # OS
 Thumbs.db
 
 # API Server config (contains secrets)
+src/AgentFree.API/appsettings.json
 src/AgentFree.API/appsettings.Development.json
 src/AgentFree.API/Services/api-keys.json
 

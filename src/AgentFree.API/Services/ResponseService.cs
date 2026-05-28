@@ -61,7 +61,7 @@ public class ResponseService : IResponseService
                     Id = agent.Id.ToString(),
                     Name = agent.Name,
                     Description = agent.Description,
-                    SystemPrompt = agent.SystemPrompt ?? "",
+                    SystemPrompt = agent.Description ?? "",
                     ToolIds = new List<string>()
                 };
             }
@@ -78,7 +78,7 @@ public class ResponseService : IResponseService
                     Id = defaultAgent.Id.ToString(),
                     Name = defaultAgent.Name,
                     Description = defaultAgent.Description,
-                    SystemPrompt = defaultAgent.SystemPrompt ?? "",
+                    SystemPrompt = defaultAgent.Description ?? "",
                     ToolIds = new List<string>()
                 };
             }

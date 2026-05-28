@@ -28,19 +28,7 @@ namespace AgentFree.API.Controllers
         {
             var agent = await _ctx.Agents.FindAsync(id);
             if (agent == null) return NotFound();
-            return Ok(new {
-                agent.Id,
-                agent.Name,
-                agent.Description,
-                agent.SystemPrompt,
-                agent.AgentType,
-                agent.ServiceUrl,
-                agent.AgentId,
-                agent.Token,
-                agent.Status,
-                agent.CreatedAt,
-                agent.UpdatedAt
-            });
+            return Ok(agent);
         }
 
         [HttpPost]
@@ -50,36 +38,15 @@ namespace AgentFree.API.Controllers
             {
                 Name = dto.Name,
                 Description = dto.Description,
-                AgentType = dto.AgentType ?? "Goldfish",
-                ServiceUrl = dto.ServiceUrl,
                 AgentId = dto.AgentId,
-                Token = dto.Token,
-                SystemPrompt = dto.SystemPrompt,
-                Status = "Inactive",
-                // 对话大模型字段
-                LLMProvider = dto.LLMProvider,
-                LLMBaseUrl = dto.LLMBaseUrl,
-                LLMModelName = dto.LLMModelName,
-                LLMApiKey = dto.LLMApiKey
+                AgentType = dto.AgentType ?? "Goldfish",
+                BaseUrl = dto.BaseUrl,
+                ApiKey = dto.ApiKey,
+                Status = "Inactive"
             };
             _ctx.Agents.Add(agent);
             await _ctx.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetAgent), new { id = agent.Id }, new {
-                agent.Id,
-                agent.Name,
-                agent.Description,
-                agent.AgentType,
-                agent.ServiceUrl,
-                agent.AgentId,
-                agent.Token,
-                agent.SystemPrompt,
-                agent.LLMProvider,
-                agent.LLMBaseUrl,
-                agent.LLMModelName,
-                agent.Status,
-                agent.CreatedAt,
-                agent.UpdatedAt
-            });
+            return CreatedAtAction(nameof(GetAgents), new { id = agent.Id }, agent);
         }
 
         [HttpPut("{id}")]
@@ -90,30 +57,14 @@ namespace AgentFree.API.Controllers
 
             if (!string.IsNullOrEmpty(dto.Name)) agent.Name = dto.Name;
             if (!string.IsNullOrEmpty(dto.Description)) agent.Description = dto.Description;
-            if (!string.IsNullOrEmpty(dto.AgentType)) agent.AgentType = dto.AgentType;
-            if (dto.SystemPrompt != null) agent.SystemPrompt = dto.SystemPrompt;
-            if (!string.IsNullOrEmpty(dto.ServiceUrl)) agent.ServiceUrl = dto.ServiceUrl;
             if (!string.IsNullOrEmpty(dto.AgentId)) agent.AgentId = dto.AgentId;
-            if (!string.IsNullOrEmpty(dto.Token)) agent.Token = dto.Token;
-            if (!string.IsNullOrEmpty(dto.Status)) agent.Status = dto.Status;
-            // 对话大模型字段
-            if (!string.IsNullOrEmpty(dto.LLMProvider)) agent.LLMProvider = dto.LLMProvider;
-            if (!string.IsNullOrEmpty(dto.LLMBaseUrl)) agent.LLMBaseUrl = dto.LLMBaseUrl;
-            if (!string.IsNullOrEmpty(dto.LLMModelName)) agent.LLMModelName = dto.LLMModelName;
-            if (!string.IsNullOrEmpty(dto.LLMApiKey)) agent.LLMApiKey = dto.LLMApiKey;
+            if (!string.IsNullOrEmpty(dto.AgentType)) agent.AgentType = dto.AgentType;
+            if (!string.IsNullOrEmpty(dto.BaseUrl)) agent.BaseUrl = dto.BaseUrl;
+            agent.ApiKey = dto.ApiKey ?? agent.ApiKey;
             agent.UpdatedAt = DateTime.UtcNow;
 
             await _ctx.SaveChangesAsync();
-            return Ok(new {
-                agent.Id,
-                agent.Name,
-                agent.Description,
-                agent.SystemPrompt,
-                agent.AgentType,
-                agent.Status,
-                agent.CreatedAt,
-                agent.UpdatedAt
-            });
+            return Ok(agent);
         }
 
         [HttpDelete("{id}")]

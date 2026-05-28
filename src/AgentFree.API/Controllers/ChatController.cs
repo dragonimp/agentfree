@@ -48,17 +48,13 @@ namespace AgentFree.API.Controllers
                 var agent = _context.Agents.FindAsync(agentId.Value).Result;
                 if (agent != null)
                 {
-                    // 对话大模型类型的自定义配置
-                    if (agent.AgentType == "对话大模型")
+                    return Ok(new
                     {
-                        return Ok(new
-                        {
-                            provider = agent.LLMProvider ?? "OpenAI",
-                            model = agent.LLMModelName ?? "gpt-4o",
-                            baseUrl = agent.LLMBaseUrl ?? "https://api.openai.com",
-                            models = new[] { agent.LLMModelName ?? "gpt-4o" }
-                        });
-                    }
+                        provider = "OpenAI",
+                        model = agent.AgentId ?? "gpt-4o",
+                        baseUrl = agent.BaseUrl ?? "https://api.openai.com",
+                        models = new[] { agent.AgentId ?? "gpt-4o" }
+                    });
                 }
             }
 
@@ -98,22 +94,15 @@ namespace AgentFree.API.Controllers
                     {
                         Name = agent.Name,
                         AgentType = agent.AgentType,
-                        SystemPrompt = agent.SystemPrompt
+                        SystemPrompt = agent.Description
                     };
-                    // 填充 ExtraData（对话大模型的 LLM 配置）
-                    if (!string.IsNullOrEmpty(agent.LLMProvider))
-                        agentInfo.ExtraData["LLMProvider"] = agent.LLMProvider;
-                    if (!string.IsNullOrEmpty(agent.LLMBaseUrl))
-                        agentInfo.ExtraData["LLMBaseUrl"] = agent.LLMBaseUrl;
-                    if (!string.IsNullOrEmpty(agent.LLMModelName))
-                        agentInfo.ExtraData["LLMModelName"] = agent.LLMModelName;
-                    if (!string.IsNullOrEmpty(agent.LLMApiKey))
-                        agentInfo.ExtraData["LLMApiKey"] = agent.LLMApiKey;
-                    // 填充 ExtraData（Hermes 网关配置）
-                    if (!string.IsNullOrEmpty(agent.ServiceUrl))
-                        agentInfo.ExtraData["HermesBaseUrl"] = agent.ServiceUrl;
-                    if (!string.IsNullOrEmpty(agent.Token))
-                        agentInfo.ExtraData["HermesApiKey"] = agent.Token;
+                    // 填充 ExtraData（统一配置）
+                    if (!string.IsNullOrEmpty(agent.BaseUrl))
+                        agentInfo.ExtraData["BaseUrl"] = agent.BaseUrl;
+                    if (!string.IsNullOrEmpty(agent.ApiKey))
+                        agentInfo.ExtraData["ApiKey"] = agent.ApiKey;
+                    if (!string.IsNullOrEmpty(agent.AgentId))
+                        agentInfo.ExtraData["AgentId"] = agent.AgentId;
                 }
             }
 

@@ -3,14 +3,12 @@ export interface Agent {
   name: string
   description: string
   agentType: 'Openclaw' | 'Hermes' | 'Goldfish'
-  serviceUrl?: string
   agentId?: string
-  token?: string
+  baseUrl: string
+  apiKey?: string
   status: 'Active' | 'Inactive' | 'Error'
   createdAt: string
   updatedAt: string
-  apiServerIp?: string
-  apiServerPort?: string
 }
 
 export interface Adapter {

@@ -37,9 +37,9 @@ namespace AgentFree.API.Data
 
             // Seed data
             builder.Entity<Agent>().HasData(
-                new Agent { Id = 1, Name = "hermes-coding", Description = "研发顾问，负责架构设计、代码走查", SystemPrompt = "你是一个专业的研发顾问，帮助用户进行架构设计、代码走查和技术选型。", Status = "Active", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-                new Agent { Id = 2, Name = "agent-coding", Description = "编码智能体，负责代码编写、功能开发", SystemPrompt = "你是一个专业的编码助手，帮助用户编写高质量的功能代码。", Status = "Inactive", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-                new Agent { Id = 3, Name = "testing-bot", Description = "自动化测试智能体", SystemPrompt = "你是一个自动化测试智能体，帮助用户编写和执行测试用例。", Status = "Inactive", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+                new Agent { Id = 1, Name = "hermes-coding", Description = "研发顾问，负责架构设计、代码走查", AgentId = "hermes-001", AgentType = "Hermes", BaseUrl = "http://127.0.0.1:5100", Status = "Active", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new Agent { Id = 2, Name = "agent-coding", Description = "编码智能体，负责代码编写、功能开发", AgentId = "agent-001", AgentType = "Goldfish", BaseUrl = "http://127.0.0.1:5100", Status = "Inactive", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new Agent { Id = 3, Name = "testing-bot", Description = "自动化测试智能体", AgentId = "test-001", AgentType = "Goldfish", BaseUrl = "http://127.0.0.1:5100", Status = "Inactive", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
             );
         }
     }
